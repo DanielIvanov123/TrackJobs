@@ -16,9 +16,22 @@
                 <i class="bi bi-linkedin me-2"></i>
                 TrackJobs.work
             </a>
-            <span class="navbar-text text-white">
+            <span class="navbar-text text-white me-auto">
                 LinkedIn Job Tracker
             </span>
+            
+            <!-- User menu -->
+            <div class="dropdown">
+                <button class="btn btn-outline-light dropdown-toggle" type="button" id="userDropdown" data-bs-toggle="dropdown" aria-expanded="false">
+                    <i class="bi bi-person-circle me-1"></i>
+                    <span th:text="${#authentication.name}">User</span>
+                </button>
+                <ul class="dropdown-menu dropdown-menu-end" aria-labelledby="userDropdown">
+                    <li><a class="dropdown-item" th:href="@{/logout}">
+                        <i class="bi bi-box-arrow-right me-2"></i>Logout
+                    </a></li>
+                </ul>
+            </div>
         </div>
     </nav>
 

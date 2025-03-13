@@ -1,10 +1,11 @@
-// src/main/java/com/trackjobs/service/LinkedInScraperService.java
 package com.trackjobs.service;
 
 import com.trackjobs.model.Job;
 import com.trackjobs.model.ScrapingConfig;
 import com.trackjobs.repository.JobRepository;
 import lombok.extern.slf4j.Slf4j;
+import main.java.com.trackjobs.model.User;
+
 import org.jsoup.Connection;
 import org.jsoup.Jsoup;
 import org.jsoup.nodes.Document;
@@ -598,13 +599,23 @@ public class LinkedInScraperService {
         int savedCount = 0;
         int duplicateCount = 0;
         
+        User user = config.getUser();
+        if (user == null) {
+            log.error("Cannot save jobs: No user associated with this scrape");
+            return;
+        }
+        
         for (Job job : jobs) {
             try {
-                // Check if this job already exists (by title, company, and date posted)
-                if (!jobExistsInDatabase(job)) {
+                // Associate job with user
+                job.setUser(user);
+                
+                // Check if this job already exists for this user
+                if (!jobExistsInDatabase(job, user)) {
                     jobRepository.save(job);
                     savedCount++;
-                    log.debug("Saved job: {} at {}", job.getTitle(), job.getCompany());
+                    log.debug("Saved job: {} at {} for user: {}", 
+                            job.getTitle(), job.getCompany(), user.getUsername());
                 } else {
                     duplicateCount++;
                 }
@@ -614,23 +625,24 @@ public class LinkedInScraperService {
         }
         
         config.setDuplicatesSkipped(duplicateCount);
-        log.info("Saved {} new jobs to the database (skipped {} duplicates)", savedCount, duplicateCount);
+        log.info("Saved {} new jobs to the database (skipped {} duplicates) for user: {}", 
+                savedCount, duplicateCount, user.getUsername());
     }
     
     /**
-     * Check if a job already exists in the database
+     * Check if a job already exists in the database for this user
      */
-    private boolean jobExistsInDatabase(Job job) {
-        // Get existing jobs with matching title and company
-        List<Job> existingJobs = jobRepository.findByTitleContainingIgnoreCaseOrCompanyContainingIgnoreCase(
-            job.getTitle(), job.getCompany());
+    private boolean jobExistsInDatabase(Job job, User user) {
+        // Get existing jobs with matching title and company for this user
+        List<Job> existingJobs = jobRepository.findByUserAndTitleContainingIgnoreCaseOrCompanyContainingIgnoreCase(
+            user, job.getTitle(), job.getCompany());
         
         // Check if any of them match this job
         for (Job existingJob : existingJobs) {
             if (existingJob.getCompany().equalsIgnoreCase(job.getCompany()) &&
                 existingJob.getTitle().equalsIgnoreCase(job.getTitle()) &&
                 (existingJob.getDatePosted() == null || job.getDatePosted() == null || 
-                 existingJob.getDatePosted().equals(job.getDatePosted()))) {
+                existingJob.getDatePosted().equals(job.getDatePosted()))) {
                 return true;
             }
         }

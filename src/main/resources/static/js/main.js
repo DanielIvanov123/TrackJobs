@@ -1,4 +1,3 @@
-// src/main/resources/static/js/main.js
 document.addEventListener('DOMContentLoaded', function() {
     // Get DOM elements
     const scrapeButton = document.getElementById('scrapeButton');
