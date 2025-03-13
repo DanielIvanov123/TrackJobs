@@ -1,0 +1,168 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>TrackJobs.work - LinkedIn Job Tracker</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0-alpha1/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.10.3/font/bootstrap-icons.css">
+    <link rel="stylesheet" href="/css/styles.css">
+</head>
+<body>
+    <!-- Header -->
+    <nav class="navbar navbar-expand-lg navbar-dark bg-primary">
+        <div class="container">
+            <a class="navbar-brand" href="/">
+                <i class="bi bi-linkedin me-2"></i>
+                TrackJobs.work
+            </a>
+            <span class="navbar-text text-white">
+                LinkedIn Job Tracker
+            </span>
+        </div>
+    </nav>
+
+    <div class="container my-4">
+        <!-- Search & Scrape Form -->
+        <div class="row mb-4">
+            <div class="col-12">
+                <div class="card">
+                    <div class="card-body">
+                        <h5 class="card-title">Search & Scrape LinkedIn Jobs</h5>
+                        <div class="row g-3">
+                            <div class="col-md-4">
+                                <label for="keywords" class="form-label">Keywords</label>
+                                <input type="text" class="form-control" id="keywords" placeholder="e.g. Java Developer">
+                            </div>
+                            <div class="col-md-4">
+                                <label for="location" class="form-label">Location</label>
+                                <input type="text" class="form-control" id="location" placeholder="e.g. San Francisco">
+                            </div>
+                            <div class="col-md-2">
+                                <label for="pagesToScrape" class="form-label">Pages to Scrape</label>
+                                <input type="number" class="form-control" id="pagesToScrape" value="1" min="1" max="5">
+                            </div>
+                            <div class="col-md-2 d-flex align-items-end">
+                                <button class="btn btn-primary w-100" id="scrapeButton">
+                                    <i class="bi bi-search me-2"></i>Scrape LinkedIn
+                                </button>
+                            </div>
+                        </div>
+                        
+                        <!-- Advanced Options (collapsible) -->
+                        <div class="mt-3">
+                            <button class="btn btn-sm btn-outline-secondary" type="button" data-bs-toggle="collapse" data-bs-target="#advancedOptions">
+                                Advanced Options <i class="bi bi-chevron-down"></i>
+                            </button>
+                            
+                            <div class="collapse mt-3" id="advancedOptions">
+                                <div class="card card-body bg-light">
+                                    <div class="row">
+                                        <div class="col-md-3">
+                                            <div class="form-check">
+                                                <input class="form-check-input" type="checkbox" id="remoteOnly">
+                                                <label class="form-check-label" for="remoteOnly">
+                                                    Remote Only
+                                                </label>
+                                            </div>
+                                        </div>
+                                        <div class="col-md-3">
+                                            <label for="experienceLevel" class="form-label">Experience Level</label>
+                                            <select class="form-select" id="experienceLevel">
+                                                <option value="">Any</option>
+                                                <option value="INTERNSHIP">Internship</option>
+                                                <option value="ENTRY_LEVEL">Entry Level</option>
+                                                <option value="ASSOCIATE">Associate</option>
+                                                <option value="MID_SENIOR">Mid-Senior Level</option>
+                                                <option value="DIRECTOR">Director</option>
+                                                <option value="EXECUTIVE">Executive</option>
+                                            </select>
+                                        </div>
+                                        <div class="col-md-3">
+                                            <label for="jobType" class="form-label">Job Type</label>
+                                            <select class="form-select" id="jobType">
+                                                <option value="">Any</option>
+                                                <option value="FULL_TIME">Full-time</option>
+                                                <option value="PART_TIME">Part-time</option>
+                                                <option value="CONTRACT">Contract</option>
+                                                <option value="TEMPORARY">Temporary</option>
+                                                <option value="INTERNSHIP">Internship</option>
+                                            </select>
+                                        </div>
+                                        <div class="col-md-3">
+                                            <label for="daysOld" class="form-label">Days Old</label>
+                                            <select class="form-select" id="daysOld">
+                                                <option value="1">Past 24 hours</option>
+                                                <option value="7" selected>Past week</option>
+                                                <option value="30">Past month</option>
+                                                <option value="0">Any time</option>
+                                            </select>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        
+        <!-- Loading Indicator -->
+        <div id="loadingIndicator" class="text-center mb-4" style="display: none;">
+            <div class="spinner-border text-primary" role="status">
+                <span class="visually-hidden">Loading...</span>
+            </div>
+            <p>Scraping jobs from LinkedIn. This may take a minute...</p>
+        </div>
+        
+        <!-- Results Header -->
+        <div class="d-flex justify-content-between align-items-center mb-3">
+            <h4>Job Listings</h4>
+            <span class="badge bg-primary" id="jobsCount" th:text="${jobs != null ? jobs.size() : 0}">0</span>
+        </div>
+        
+        <!-- Job Results -->
+        <div class="row" id="jobsContainer">
+            <!-- Display jobs from the model -->
+            <div th:each="job : ${jobs}" class="col-md-4 mb-4">
+                <div class="card h-100 job-card">
+                    <div class="card-body">
+                        <h5 class="card-title" th:text="${job.title}">Job Title</h5>
+                        <h6 class="card-subtitle mb-2 text-muted" th:text="${job.company}">Company</h6>
+                        <p class="card-text">
+                            <i class="bi bi-geo-alt-fill"></i> <span th:text="${job.location}">Location</span><br>
+                            <i class="bi bi-calendar"></i> <span th:text="${job.datePosted}">Date Posted</span><br>
+                            <i class="bi bi-briefcase-fill"></i> <span th:text="${job.experienceLevel}">Experience Level</span><br>
+                            <i class="bi bi-clock"></i> <span th:text="${job.jobType}">Job Type</span>
+                        </p>
+                    </div>
+                    <div class="card-footer bg-transparent">
+                        <a th:if="${job.url}" th:href="${job.url}" target="_blank" class="btn btn-sm btn-outline-primary w-100">
+                            <i class="bi bi-linkedin me-2"></i>View on LinkedIn
+                        </a>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- Empty state message -->
+            <div th:if="${jobs == null || jobs.empty}" class="col-12 text-center">
+                <div class="alert alert-info">
+                    No jobs found. Use the form above to scrape LinkedIn for jobs.
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <!-- Footer -->
+    <footer class="bg-light py-3 mt-5">
+        <div class="container text-center">
+            <p class="text-muted mb-0">
+                &copy; 2025 TrackJobs.work - A LinkedIn Job Scraper
+            </p>
+        </div>
+    </footer>
+    
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0-alpha1/dist/js/bootstrap.bundle.min.js"></script>
+    <script src="/js/main.js"></script>
+</body>
+</html>
