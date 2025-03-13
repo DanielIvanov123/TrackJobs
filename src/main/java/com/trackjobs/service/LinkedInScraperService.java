@@ -1,3 +1,4 @@
+// src/main/java/com/trackjobs/service/LinkedInScraperService.java
 package com.trackjobs.service;
 
 import com.trackjobs.model.Job;
@@ -15,8 +16,11 @@ import org.springframework.stereotype.Service;
 
 import java.io.IOException;
 import java.time.LocalDate;
+import java.time.ZoneId;
+import java.time.format.DateTimeFormatter;
 import java.util.*;
 import java.util.concurrent.atomic.AtomicInteger;
+import java.util.stream.Collectors;
 
 @Service
 @Slf4j
@@ -52,9 +56,19 @@ public class LinkedInScraperService {
         log.info("Starting LinkedIn job scraping with keywords: {}, location: {}", 
                 config.getKeywords(), config.getLocation());
         
+        // Initialize stats
+        config.setPagesScraped(0);
+        config.setTotalJobsFound(0);
+        config.setJobsAfterFiltering(0);
+        config.setDuplicatesSkipped(0);
+        
+        // Record start time for performance tracking
+        long startTime = System.currentTimeMillis();
+        
         // Ensure pages to scrape doesn't exceed the maximum
         int pagesToScrape = Math.min(config.getPagesToScrape(), maxPages);
-        List<Job> scrapedJobs = new ArrayList<>();
+        List<Job> allScrapedJobs = new ArrayList<>();  // All jobs found from scraping
+        List<Job> filteredJobs = new ArrayList<>();    // Jobs after filtering
         Map<String, String> cookies = new HashMap<>();
         
         // Set scrape date to track this batch
@@ -63,15 +77,18 @@ public class LinkedInScraperService {
         try {
             // Initialize session by getting cookies
             initializeSession(cookies);
+            log.info("LinkedIn session initialized successfully");
             
             // Scrape each page
             for (int page = 0; page < pagesToScrape; page++) {
                 log.info("Scraping page {} of {}", page + 1, pagesToScrape);
+                config.setPagesScraped(page + 1);
                 
                 // Build the search URL for this page
                 String url = buildSearchUrl(config, page);
                 
                 // Get the page content
+                log.debug("Requesting URL: {}", url);
                 Document doc = getPageWithRetry(url, cookies);
                 if (doc == null) {
                     log.warn("Failed to retrieve page {} after retries", page + 1);
@@ -80,51 +97,78 @@ public class LinkedInScraperService {
                 
                 // Extract jobs from the page
                 List<Job> pageJobs = extractJobsFromPage(doc, scrapeDate, config);
+                config.setTotalJobsFound(config.getTotalJobsFound() + pageJobs.size());
+                
                 if (pageJobs.isEmpty()) {
                     log.info("No jobs found on page {}, ending scrape", page + 1);
                     break;
                 }
                 
-                // Get job details for each job
-                pageJobs.forEach(job -> {
-                    try {
-                        // Add a delay between requests to avoid rate limiting
-                        Thread.sleep(requestDelay);
-                        
-                        // Get the job details page if URL is available
-                        if (job.getUrl() != null && !job.getUrl().isEmpty()) {
-                            Document jobDoc = getPageWithRetry(job.getUrl(), cookies);
-                            if (jobDoc != null) {
-                                // Extract job description from the details page
-                                String description = extractJobDescription(jobDoc);
-                                job.setDescription(description);
-                            }
-                        }
-                    } catch (Exception e) {
-                        log.warn("Error getting details for job {}: {}", job.getTitle(), e.getMessage());
-                    }
-                });
-                
-                // Add this page's jobs to the overall list
-                scrapedJobs.addAll(pageJobs);
-                
-                // Save jobs to database
-                saveJobs(pageJobs);
-                
+                allScrapedJobs.addAll(pageJobs);
                 log.info("Found {} jobs on page {}", pageJobs.size(), page + 1);
+                
+                // Get job details for each job (if we have less than 50 jobs to keep it reasonable)
+                if (pageJobs.size() <= 50) {
+                    int jobCount = 0;
+                    for (Job job : pageJobs) {
+                        try {
+                            jobCount++;
+                            log.info("Getting details for job {}/{}: {} at {}", 
+                                    jobCount, pageJobs.size(), job.getTitle(), job.getCompany());
+                            
+                            // Add a delay between requests to avoid rate limiting
+                            Thread.sleep(requestDelay);
+                            
+                            // Get the job details page if URL is available
+                            if (job.getUrl() != null && !job.getUrl().isEmpty()) {
+                                Document jobDoc = getPageWithRetry(job.getUrl(), cookies);
+                                if (jobDoc != null) {
+                                    // Extract job description from the details page
+                                    String description = extractJobDescription(jobDoc);
+                                    job.setDescription(description);
+                                    log.debug("Successfully extracted description for job: {}", job.getTitle());
+                                }
+                            }
+                        } catch (Exception e) {
+                            log.warn("Error getting details for job {}: {}", job.getTitle(), e.getMessage());
+                        }
+                    }
+                } else {
+                    log.info("Skipping detailed job scraping for page {} as there are too many jobs ({})", 
+                            page + 1, pageJobs.size());
+                }
                 
                 // Add a delay before next page to avoid rate limiting
                 if (page < pagesToScrape - 1) {
+                    log.debug("Waiting for {} ms before scraping next page", requestDelay);
                     Thread.sleep(requestDelay);
                 }
             }
+            
+            // Apply filters to the scraped jobs
+            filteredJobs = filterJobs(allScrapedJobs, config);
+            config.setJobsAfterFiltering(filteredJobs.size());
+            
+            log.info("Filtering complete: {} jobs after filtering (from {} total jobs)", 
+                    filteredJobs.size(), allScrapedJobs.size());
+            
+            // Save filtered jobs to database
+            saveJobs(filteredJobs, config);
             
         } catch (Exception e) {
             log.error("Error during LinkedIn scraping: {}", e.getMessage(), e);
         }
         
-        log.info("LinkedIn scraping completed. Found {} jobs", scrapedJobs.size());
-        return scrapedJobs;
+        // Set scraping time
+        long endTime = System.currentTimeMillis();
+        config.setScrapingTimeMs(endTime - startTime);
+        
+        log.info("LinkedIn scraping completed in {} ms", config.getScrapingTimeMs());
+        log.info("Scraping summary: Pages: {}, Total jobs: {}, After filtering: {}, Duplicates skipped: {}", 
+                config.getPagesScraped(), config.getTotalJobsFound(), config.getJobsAfterFiltering(), 
+                config.getDuplicatesSkipped());
+        
+        return filteredJobs;
     }
     
     /**
@@ -193,6 +237,13 @@ public class LinkedInScraperService {
             String dateCode = mapDaysOldToLinkedInCode(config.getDaysOld());
             if (dateCode != null) {
                 urlBuilder.append("&f_TPR=").append(dateCode);
+            }
+        }
+        
+        // Add additional experience level filters if specified (from codebase1)
+        if (config.getExperienceLevelInclude() != null && !config.getExperienceLevelInclude().isEmpty()) {
+            for (String level : config.getExperienceLevelInclude()) {
+                urlBuilder.append("&f_E=").append(level);
             }
         }
         
@@ -314,6 +365,8 @@ public class LinkedInScraperService {
             return jobs;
         }
         
+        log.info("Found {} job cards on page", jobCards.size());
+        
         for (Element card : jobCards) {
             try {
                 // Extract job information from the card
@@ -324,6 +377,7 @@ public class LinkedInScraperService {
                 Element linkElement = card.selectFirst("a.base-card__full-link");
                 
                 if (titleElement == null || companyElement == null) {
+                    log.debug("Skipping incomplete job card");
                     continue;  // Skip incomplete cards
                 }
                 
@@ -353,6 +407,8 @@ public class LinkedInScraperService {
                 // Determine job type from listing
                 String jobType = determineJobType(card);
                 
+                log.debug("Extracted job: title={}, company={}, location={}", title, company, location);
+                
                 // Create and add the job
                 Job job = Job.builder()
                     .title(title)
@@ -373,6 +429,106 @@ public class LinkedInScraperService {
         }
         
         return jobs;
+    }
+    
+    /**
+     * Filter jobs based on config filters
+     */
+    private List<Job> filterJobs(List<Job> jobs, ScrapingConfig config) {
+        log.info("Applying filters to {} jobs", jobs.size());
+        
+        if (jobs.isEmpty()) {
+            return jobs;
+        }
+        
+        List<Job> filteredJobs = new ArrayList<>(jobs);
+        
+        // Apply title include words filter
+        if (config.getTitleIncludeWords() != null && !config.getTitleIncludeWords().isEmpty()) {
+            int beforeCount = filteredJobs.size();
+            filteredJobs = filteredJobs.stream()
+                .filter(job -> {
+                    String title = job.getTitle().toLowerCase();
+                    return config.getTitleIncludeWords().stream()
+                        .anyMatch(word -> title.contains(word.toLowerCase()));
+                })
+                .collect(Collectors.toList());
+            log.info("Title include words filter: {} -> {} jobs", beforeCount, filteredJobs.size());
+        }
+        
+        // Apply title exclude words filter
+        if (config.getTitleExcludeWords() != null && !config.getTitleExcludeWords().isEmpty()) {
+            int beforeCount = filteredJobs.size();
+            filteredJobs = filteredJobs.stream()
+                .filter(job -> {
+                    String title = job.getTitle().toLowerCase();
+                    return config.getTitleExcludeWords().stream()
+                        .noneMatch(word -> title.contains(word.toLowerCase()));
+                })
+                .collect(Collectors.toList());
+            log.info("Title exclude words filter: {} -> {} jobs", beforeCount, filteredJobs.size());
+        }
+        
+        // Apply company exclude words filter
+        if (config.getCompanyExcludeWords() != null && !config.getCompanyExcludeWords().isEmpty()) {
+            int beforeCount = filteredJobs.size();
+            filteredJobs = filteredJobs.stream()
+                .filter(job -> {
+                    String company = job.getCompany().toLowerCase();
+                    return config.getCompanyExcludeWords().stream()
+                        .noneMatch(word -> company.contains(word.toLowerCase()));
+                })
+                .collect(Collectors.toList());
+            log.info("Company exclude words filter: {} -> {} jobs", beforeCount, filteredJobs.size());
+        }
+        
+        // Apply description exclude words filter (if descriptions are available)
+        if (config.getDescriptionExcludeWords() != null && !config.getDescriptionExcludeWords().isEmpty()) {
+            int beforeCount = filteredJobs.size();
+            filteredJobs = filteredJobs.stream()
+                .filter(job -> {
+                    if (job.getDescription() == null || job.getDescription().isEmpty()) {
+                        return true;  // Keep jobs without descriptions
+                    }
+                    String desc = job.getDescription().toLowerCase();
+                    return config.getDescriptionExcludeWords().stream()
+                        .noneMatch(word -> desc.contains(word.toLowerCase()));
+                })
+                .collect(Collectors.toList());
+            log.info("Description exclude words filter: {} -> {} jobs", beforeCount, filteredJobs.size());
+        }
+        
+        // Apply experience level exclude filter
+        if (config.getExperienceLevelExclude() != null && !config.getExperienceLevelExclude().isEmpty()) {
+            int beforeCount = filteredJobs.size();
+            filteredJobs = filteredJobs.stream()
+                .filter(job -> {
+                    String level = determineExperienceLevelCode(job.getExperienceLevel());
+                    return !config.getExperienceLevelExclude().contains(level);
+                })
+                .collect(Collectors.toList());
+            log.info("Experience level exclude filter: {} -> {} jobs", beforeCount, filteredJobs.size());
+        }
+        
+        return filteredJobs;
+    }
+    
+    /**
+     * Map experience level to LinkedIn code
+     */
+    private String determineExperienceLevelCode(String experienceLevel) {
+        if (experienceLevel == null) return "0";
+        
+        if (experienceLevel.equalsIgnoreCase("Internship")) return "1";
+        if (experienceLevel.equalsIgnoreCase("Junior") || 
+            experienceLevel.equalsIgnoreCase("Entry Level")) return "2";
+        if (experienceLevel.equalsIgnoreCase("Associate")) return "3";
+        if (experienceLevel.equalsIgnoreCase("Mid-level") || 
+            experienceLevel.equalsIgnoreCase("Senior")) return "4";
+        if (experienceLevel.equalsIgnoreCase("Director")) return "5";
+        if (experienceLevel.equalsIgnoreCase("Executive")) return "6";
+        
+        return "0";
     }
     
     /**
@@ -425,6 +581,7 @@ public class LinkedInScraperService {
         Element descElement = doc.selectFirst("div.description__text");
         
         if (descElement == null) {
+            log.debug("Description element not found in job details page");
             return "";  // Description not found
         }
         
@@ -437,8 +594,9 @@ public class LinkedInScraperService {
     /**
      * Save jobs to the database, avoiding duplicates
      */
-    private void saveJobs(List<Job> jobs) {
+    private void saveJobs(List<Job> jobs, ScrapingConfig config) {
         int savedCount = 0;
+        int duplicateCount = 0;
         
         for (Job job : jobs) {
             try {
@@ -446,13 +604,17 @@ public class LinkedInScraperService {
                 if (!jobExistsInDatabase(job)) {
                     jobRepository.save(job);
                     savedCount++;
+                    log.debug("Saved job: {} at {}", job.getTitle(), job.getCompany());
+                } else {
+                    duplicateCount++;
                 }
             } catch (Exception e) {
                 log.warn("Error saving job {}: {}", job.getTitle(), e.getMessage());
             }
         }
         
-        log.info("Saved {} new jobs to the database", savedCount);
+        config.setDuplicatesSkipped(duplicateCount);
+        log.info("Saved {} new jobs to the database (skipped {} duplicates)", savedCount, duplicateCount);
     }
     
     /**

@@ -1,5 +1,6 @@
 package com.trackjobs.model;
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
@@ -46,6 +47,12 @@ public class Job {
     
     @Column(name = "job_type")
     private String jobType;
+    
+    // Add user relationship
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "user_id")
+    @JsonIgnore
+    private User user;
     
     @PrePersist
     public void prePersist() {

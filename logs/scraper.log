@@ -1,0 +1,30 @@
+2025-03-13 15:41:29.593 [http-nio-8080-exec-3] INFO  c.t.service.LinkedInScraperService - Starting LinkedIn job scraping with keywords: java developer, location: seattle
+2025-03-13 15:41:29.594 [http-nio-8080-exec-3] DEBUG c.t.service.LinkedInScraperService - Initializing LinkedIn session
+2025-03-13 15:41:30.002 [http-nio-8080-exec-3] DEBUG c.t.service.LinkedInScraperService - Session initialized with 5 cookies
+2025-03-13 15:41:30.002 [http-nio-8080-exec-3] INFO  c.t.service.LinkedInScraperService - LinkedIn session initialized successfully
+2025-03-13 15:41:30.002 [http-nio-8080-exec-3] INFO  c.t.service.LinkedInScraperService - Scraping page 1 of 1
+2025-03-13 15:41:30.002 [http-nio-8080-exec-3] DEBUG c.t.service.LinkedInScraperService - Built search URL: https://www.linkedin.com/jobs/search?keywords=java%20developer&location=seattle&start=0&f_E=2&f_JT=F&f_TPR=r604800
+2025-03-13 15:41:30.002 [http-nio-8080-exec-3] DEBUG c.t.service.LinkedInScraperService - Requesting URL: https://www.linkedin.com/jobs/search?keywords=java%20developer&location=seattle&start=0&f_E=2&f_JT=F&f_TPR=r604800
+2025-03-13 15:41:30.655 [http-nio-8080-exec-3] INFO  c.t.service.LinkedInScraperService - Found 4 job cards on page
+2025-03-13 15:41:30.656 [http-nio-8080-exec-3] DEBUG c.t.service.LinkedInScraperService - Extracted job: title=Java Full Stack Developer, company=Infosys, location=Seattle, WA
+2025-03-13 15:41:30.656 [http-nio-8080-exec-3] DEBUG c.t.service.LinkedInScraperService - Extracted job: title=Software Engineer (Backend/Fullstack) - Trust and Safety, company=TikTok, location=Seattle, WA
+2025-03-13 15:41:30.657 [http-nio-8080-exec-3] DEBUG c.t.service.LinkedInScraperService - Extracted job: title=Software Engineer (Backend/Fullstack) - Trust and Safety, company=TikTok, location=Seattle, WA
+2025-03-13 15:41:30.657 [http-nio-8080-exec-3] DEBUG c.t.service.LinkedInScraperService - Extracted job: title=Java Developer, company=Jobs via Dice, location=Bellevue, WA
+2025-03-13 15:41:30.657 [http-nio-8080-exec-3] INFO  c.t.service.LinkedInScraperService - Found 4 jobs on page 1
+2025-03-13 15:41:30.657 [http-nio-8080-exec-3] INFO  c.t.service.LinkedInScraperService - Getting details for job 1/4: Java Full Stack Developer at Infosys
+2025-03-13 15:41:34.448 [http-nio-8080-exec-3] DEBUG c.t.service.LinkedInScraperService - Successfully extracted description for job: Java Full Stack Developer
+2025-03-13 15:41:34.449 [http-nio-8080-exec-3] INFO  c.t.service.LinkedInScraperService - Getting details for job 2/4: Software Engineer (Backend/Fullstack) - Trust and Safety at TikTok
+2025-03-13 15:41:38.252 [http-nio-8080-exec-3] DEBUG c.t.service.LinkedInScraperService - Successfully extracted description for job: Software Engineer (Backend/Fullstack) - Trust and Safety
+2025-03-13 15:41:38.252 [http-nio-8080-exec-3] INFO  c.t.service.LinkedInScraperService - Getting details for job 3/4: Software Engineer (Backend/Fullstack) - Trust and Safety at TikTok
+2025-03-13 15:41:42.195 [http-nio-8080-exec-3] DEBUG c.t.service.LinkedInScraperService - Successfully extracted description for job: Software Engineer (Backend/Fullstack) - Trust and Safety
+2025-03-13 15:41:42.195 [http-nio-8080-exec-3] INFO  c.t.service.LinkedInScraperService - Getting details for job 4/4: Java Developer at Jobs via Dice
+2025-03-13 15:41:45.974 [http-nio-8080-exec-3] DEBUG c.t.service.LinkedInScraperService - Successfully extracted description for job: Java Developer
+2025-03-13 15:41:45.974 [http-nio-8080-exec-3] INFO  c.t.service.LinkedInScraperService - Applying filters to 4 jobs
+2025-03-13 15:41:45.974 [http-nio-8080-exec-3] INFO  c.t.service.LinkedInScraperService - Filtering complete: 4 jobs after filtering (from 4 total jobs)
+2025-03-13 15:41:46.041 [http-nio-8080-exec-3] DEBUG c.t.service.LinkedInScraperService - Saved job: Java Full Stack Developer at Infosys
+2025-03-13 15:41:46.052 [http-nio-8080-exec-3] DEBUG c.t.service.LinkedInScraperService - Saved job: Software Engineer (Backend/Fullstack) - Trust and Safety at TikTok
+2025-03-13 15:41:46.062 [http-nio-8080-exec-3] DEBUG c.t.service.LinkedInScraperService - Saved job: Software Engineer (Backend/Fullstack) - Trust and Safety at TikTok
+2025-03-13 15:41:46.068 [http-nio-8080-exec-3] DEBUG c.t.service.LinkedInScraperService - Saved job: Java Developer at Jobs via Dice
+2025-03-13 15:41:46.068 [http-nio-8080-exec-3] INFO  c.t.service.LinkedInScraperService - Saved 4 new jobs to the database (skipped 0 duplicates)
+2025-03-13 15:41:46.069 [http-nio-8080-exec-3] INFO  c.t.service.LinkedInScraperService - LinkedIn scraping completed in 16475 ms
+2025-03-13 15:41:46.069 [http-nio-8080-exec-3] INFO  c.t.service.LinkedInScraperService - Scraping summary: Pages: 1, Total jobs: 4, After filtering: 4, Duplicates skipped: 0

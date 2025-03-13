@@ -51,13 +51,13 @@
                         
                         <!-- Advanced Options (collapsible) -->
                         <div class="mt-3">
-                            <button class="btn btn-sm btn-outline-secondary" type="button" data-bs-toggle="collapse" data-bs-target="#advancedOptions">
+                            <button class="btn btn-sm btn-outline-secondary" type="button" id="advancedToggle" data-bs-toggle="collapse" data-bs-target="#advancedOptions">
                                 Advanced Options <i class="bi bi-chevron-down"></i>
                             </button>
                             
                             <div class="collapse mt-3" id="advancedOptions">
                                 <div class="card card-body bg-light">
-                                    <div class="row">
+                                    <div class="row mb-3">
                                         <div class="col-md-3">
                                             <div class="form-check">
                                                 <input class="form-check-input" type="checkbox" id="remoteOnly">
@@ -99,6 +99,75 @@
                                             </select>
                                         </div>
                                     </div>
+                                    
+                                    <!-- Additional filters -->
+                                    <div class="row mb-3">
+                                        <div class="col-md-6">
+                                            <label for="titleIncludeWords" class="form-label">Title Include Words</label>
+                                            <input type="text" class="form-control" id="titleIncludeWords" placeholder="Words separated by commas">
+                                            <div class="form-text">Jobs must contain at least one of these words in the title</div>
+                                        </div>
+                                        <div class="col-md-6">
+                                            <label for="titleExcludeWords" class="form-label">Title Exclude Words</label>
+                                            <input type="text" class="form-control" id="titleExcludeWords" placeholder="Words separated by commas">
+                                            <div class="form-text">Jobs containing any of these words in the title will be excluded</div>
+                                        </div>
+                                    </div>
+                                    
+                                    <div class="row mb-3">
+                                        <div class="col-md-6">
+                                            <label for="companyExcludeWords" class="form-label">Company Exclude Words</label>
+                                            <input type="text" class="form-control" id="companyExcludeWords" placeholder="Words separated by commas">
+                                            <div class="form-text">Jobs from companies containing these words will be excluded</div>
+                                        </div>
+                                        <div class="col-md-6">
+                                            <label for="descriptionExcludeWords" class="form-label">Description Exclude Words</label>
+                                            <input type="text" class="form-control" id="descriptionExcludeWords" placeholder="Words separated by commas">
+                                            <div class="form-text">Jobs containing these words in the description will be excluded</div>
+                                        </div>
+                                    </div>
+                                    
+                                    <!-- Experience Level Include/Exclude -->
+                                    <div class="row">
+                                        <div class="col-md-6">
+                                            <label class="form-label">Include Experience Levels</label>
+                                            <div class="d-flex flex-wrap">
+                                                <div class="form-check me-3 mb-2">
+                                                    <input class="form-check-input" type="checkbox" name="expInclude" value="1" id="expInclude1">
+                                                    <label class="form-check-label" for="expInclude1">Internship</label>
+                                                </div>
+                                                <div class="form-check me-3 mb-2">
+                                                    <input class="form-check-input" type="checkbox" name="expInclude" value="2" id="expInclude2" checked>
+                                                    <label class="form-check-label" for="expInclude2">Entry Level</label>
+                                                </div>
+                                                <div class="form-check me-3 mb-2">
+                                                    <input class="form-check-input" type="checkbox" name="expInclude" value="3" id="expInclude3" checked>
+                                                    <label class="form-check-label" for="expInclude3">Associate</label>
+                                                </div>
+                                                <div class="form-check me-3 mb-2">
+                                                    <input class="form-check-input" type="checkbox" name="expInclude" value="4" id="expInclude4" checked>
+                                                    <label class="form-check-label" for="expInclude4">Mid-Senior</label>
+                                                </div>
+                                                <div class="form-check me-3 mb-2">
+                                                    <input class="form-check-input" type="checkbox" name="expInclude" value="0" id="expInclude0" checked>
+                                                    <label class="form-check-label" for="expInclude0">Not Specified</label>
+                                                </div>
+                                            </div>
+                                        </div>
+                                        <div class="col-md-6">
+                                            <label class="form-label">Exclude Experience Levels</label>
+                                            <div class="d-flex flex-wrap">
+                                                <div class="form-check me-3 mb-2">
+                                                    <input class="form-check-input" type="checkbox" name="expExclude" value="5" id="expExclude5" checked>
+                                                    <label class="form-check-label" for="expExclude5">Director</label>
+                                                </div>
+                                                <div class="form-check me-3 mb-2">
+                                                    <input class="form-check-input" type="checkbox" name="expExclude" value="6" id="expExclude6" checked>
+                                                    <label class="form-check-label" for="expExclude6">Executive</label>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </div>
                                 </div>
                             </div>
                         </div>
@@ -107,12 +176,27 @@
             </div>
         </div>
         
-        <!-- Loading Indicator -->
-        <div id="loadingIndicator" class="text-center mb-4" style="display: none;">
-            <div class="spinner-border text-primary" role="status">
-                <span class="visually-hidden">Loading...</span>
+        <!-- Loading Indicator with improved feedback -->
+        <div id="loadingIndicator" class="card mb-4" style="display: none;">
+            <div class="card-body">
+                <h5 class="card-title mb-3">Scraping LinkedIn Jobs...</h5>
+                
+                <!-- Progress bar -->
+                <div class="progress mb-3" style="height: 25px;">
+                    <div id="scrapeProgressBar" class="progress-bar progress-bar-striped progress-bar-animated" 
+                         role="progressbar" style="width: 0%;" aria-valuenow="0" aria-valuemin="0" aria-valuemax="100">
+                        <span id="progressBarText">Starting scrape...</span>
+                    </div>
+                </div>
+                
+                <!-- Status updates -->
+                <div class="card">
+                    <div class="card-header">Status Updates</div>
+                    <ul id="statusUpdatesList" class="list-group list-group-flush" style="max-height: 200px; overflow-y: auto;">
+                        <!-- Status updates will be added here -->
+                    </ul>
+                </div>
             </div>
-            <p>Scraping jobs from LinkedIn. This may take a minute...</p>
         </div>
         
         <!-- Results Header -->
@@ -147,6 +231,7 @@
             <!-- Empty state message -->
             <div th:if="${jobs == null || jobs.empty}" class="col-12 text-center">
                 <div class="alert alert-info">
+                    <i class="bi bi-info-circle-fill me-2"></i>
                     No jobs found. Use the form above to scrape LinkedIn for jobs.
                 </div>
             </div>

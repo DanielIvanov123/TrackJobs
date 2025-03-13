@@ -5,6 +5,8 @@ import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 
+import java.util.List;
+
 @Data
 @NoArgsConstructor
 @AllArgsConstructor
@@ -19,4 +21,22 @@ public class ScrapingConfig {
     // Optional configs
     private boolean remoteOnly;
     private int daysOld;
+    
+    // Advanced filters from codebase1
+    private List<String> titleIncludeWords;
+    private List<String> titleExcludeWords;
+    private List<String> companyExcludeWords;
+    private List<String> descriptionExcludeWords;
+    private List<String> experienceLevelInclude;
+    private List<String> experienceLevelExclude;
+    
+    // User who initiated the scrape
+    private User user;
+    
+    // Scraping stats (to be populated during scraping)
+    private int pagesScraped;
+    private int totalJobsFound;
+    private int jobsAfterFiltering;
+    private int duplicatesSkipped;
+    private long scrapingTimeMs;
 }
