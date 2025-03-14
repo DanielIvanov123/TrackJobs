@@ -6,6 +6,9 @@ import com.trackjobs.service.JobService;
 import com.trackjobs.model.SavedScraperConfig;
 import com.trackjobs.service.ScraperConfigService;
 import lombok.extern.slf4j.Slf4j;
+import com.trackjobs.model.ScrapingProgress;
+import com.trackjobs.model.User;
+
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Controller;
@@ -20,6 +23,9 @@ import java.util.Arrays;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.UUID;
+import java.util.concurrent.CompletableFuture;
+import java.util.concurrent.ConcurrentHashMap;
 import java.util.stream.Collectors;
 import java.util.HashMap;
 
@@ -108,7 +114,6 @@ public class JobController {
             List<String> companyExcludeWords = parseStringList(request.get("companyExcludeWords"));
             List<String> descriptionExcludeWords = parseStringList(request.get("descriptionExcludeWords"));
             List<String> experienceLevelInclude = parseStringList(request.get("experienceLevelInclude"));
-            List<String> experienceLevelExclude = parseStringList(request.get("experienceLevelExclude"));
             
             if (keywords.isEmpty() || location.isEmpty()) {
                 return ResponseEntity.badRequest().body(Map.of(
@@ -137,7 +142,6 @@ public class JobController {
                 .companyExcludeWords(companyExcludeWords)
                 .descriptionExcludeWords(descriptionExcludeWords)
                 .experienceLevelInclude(experienceLevelInclude)
-                .experienceLevelExclude(experienceLevelExclude)
                 .build();
             
             // Run the scrape
@@ -253,7 +257,6 @@ public class JobController {
             List<String> companyExcludeWords = parseStringList(request.get("companyExcludeWords"));
             List<String> descriptionExcludeWords = parseStringList(request.get("descriptionExcludeWords"));
             List<String> experienceLevelInclude = parseStringList(request.get("experienceLevelInclude"));
-            List<String> experienceLevelExclude = parseStringList(request.get("experienceLevelExclude"));
             
             // Create config object
             ScrapingConfig config = ScrapingConfig.builder()
@@ -269,7 +272,6 @@ public class JobController {
                 .companyExcludeWords(companyExcludeWords)
                 .descriptionExcludeWords(descriptionExcludeWords)
                 .experienceLevelInclude(experienceLevelInclude)
-                .experienceLevelExclude(experienceLevelExclude)
                 .build();
             
             // Save the configuration
@@ -348,5 +350,26 @@ public class JobController {
                 "message", "Error deleting configuration: " + e.getMessage()
             ));
         }
+    }
+
+    private static final Map<String, ScrapingProgress> SCRAPING_PROGRESS = new ConcurrentHashMap<>();
+
+    @GetMapping("/api/jobs/scrape/progress")
+    @ResponseBody
+    public ResponseEntity<Map<String, Object>> getScrapingProgress(
+            @RequestParam(required = true) String scrapeId) {
+        ScrapingProgress progress = SCRAPING_PROGRESS.getOrDefault(scrapeId, 
+                new ScrapingProgress(0, 0, "Initializing...", 0));
+        
+        Map<String, Object> response = new HashMap<>();
+        response.put("percentComplete", progress.getPercentComplete());
+        response.put("currentPage", progress.getCurrentPage());
+        response.put("totalPages", progress.getTotalPages());
+        response.put("status", progress.getStatus());
+        response.put("experienceLevelIndex", progress.getExperienceLevelIndex());
+        response.put("totalExperienceLevels", progress.getTotalExperienceLevels());
+        response.put("currentExperienceLevel", progress.getCurrentExperienceLevel());
+        
+        return ResponseEntity.ok(response);
     }
 }

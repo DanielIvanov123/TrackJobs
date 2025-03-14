@@ -47,12 +47,28 @@
                     <li><a class="dropdown-item" th:href="@{/logout}">
                         <i class="bi bi-box-arrow-right me-2"></i>Logout
                     </a></li>
+                    <li><hr class="dropdown-divider"></li>
+                    <li><a class="dropdown-item text-danger" href="#" data-bs-toggle="modal" data-bs-target="#wipeDataModal">
+                        <i class="bi bi-trash me-2"></i>Delete All My Data
+                    </a></li>
                 </ul>
             </div>
         </div>
     </nav>
 
     <div class="container my-4">
+        <!-- Success/Error Messages -->
+        <div class="alert alert-success alert-dismissible fade show" role="alert" th:if="${message}">
+            <i class="bi bi-check-circle-fill me-2"></i>
+            <span th:text="${message}"></span>
+            <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+        </div>
+        
+        <div class="alert alert-danger alert-dismissible fade show" role="alert" th:if="${error}">
+            <i class="bi bi-exclamation-circle-fill me-2"></i>
+            <span th:text="${error}"></span>
+            <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+        </div>
         <!-- Search Tab Content -->
         <div id="searchTabContent">
             <!-- Search Form -->
@@ -104,6 +120,7 @@
                                                     <option value="Mid-level">Mid-Senior Level</option>
                                                     <option value="Director">Director</option>
                                                     <option value="Executive">Executive</option>
+                                                    <option value="Not specified">Not specified</option>
                                                 </select>
                                             </div>
                                             <div class="col-md-3">
@@ -334,45 +351,45 @@
                                 
                                 <!-- Experience Level Filters Tab -->
                                 <div class="tab-pane fade" id="experience-filters" role="tabpanel">
-                                    <p class="mb-3 text-muted">LinkedIn uses specific experience level categories. Select which levels to include or exclude in your search results.</p>
+                                    <p class="mb-3 text-muted">LinkedIn uses specific experience level categories. Select which levels to include in your search results.</p>
                                     
                                     <div class="row">
-                                        <div class="col-md-6">
+                                        <div class="col-md-12">
                                             <div class="card h-100">
                                                 <div class="card-header bg-success bg-opacity-10">
                                                     <h6 class="mb-0">
-                                                        <i class="bi bi-check-lg me-1"></i> Include These Experience Levels
+                                                        <i class="bi bi-check-lg me-1"></i> Search These Experience Levels
                                                     </h6>
                                                 </div>
                                                 <div class="card-body">
-                                                    <p class="text-muted small">Jobs matching these experience levels will be included in results</p>
+                                                    <p class="text-muted small">The scraper will search each selected level separately and combine the results</p>
                                                     
                                                     <div class="form-check mb-2">
-                                                        <input class="form-check-input" type="checkbox" name="expInclude" value="INTERNSHIP" id="expIncludeInternship" checked>
+                                                        <input class="form-check-input" type="checkbox" name="expInclude" value="Internship" id="expIncludeInternship" checked>
                                                         <label class="form-check-label" for="expIncludeInternship">Internship</label>
                                                     </div>
                                                     <div class="form-check mb-2">
-                                                        <input class="form-check-input" type="checkbox" name="expInclude" value="ENTRY_LEVEL" id="expIncludeEntry" checked>
+                                                        <input class="form-check-input" type="checkbox" name="expInclude" value="Entry level" id="expIncludeEntry" checked>
                                                         <label class="form-check-label" for="expIncludeEntry">Entry Level</label>
                                                     </div>
                                                     <div class="form-check mb-2">
-                                                        <input class="form-check-input" type="checkbox" name="expInclude" value="ASSOCIATE" id="expIncludeAssociate" checked>
+                                                        <input class="form-check-input" type="checkbox" name="expInclude" value="Associate" id="expIncludeAssociate" checked>
                                                         <label class="form-check-label" for="expIncludeAssociate">Associate</label>
                                                     </div>
                                                     <div class="form-check mb-2">
-                                                        <input class="form-check-input" type="checkbox" name="expInclude" value="MID_SENIOR" id="expIncludeMidSenior" checked>
+                                                        <input class="form-check-input" type="checkbox" name="expInclude" value="Mid-Senior level" id="expIncludeMidSenior" checked>
                                                         <label class="form-check-label" for="expIncludeMidSenior">Mid-Senior Level</label>
                                                     </div>
                                                     <div class="form-check mb-2">
-                                                        <input class="form-check-input" type="checkbox" name="expInclude" value="DIRECTOR" id="expIncludeDirector">
+                                                        <input class="form-check-input" type="checkbox" name="expInclude" value="Director" id="expIncludeDirector">
                                                         <label class="form-check-label" for="expIncludeDirector">Director</label>
                                                     </div>
                                                     <div class="form-check mb-2">
-                                                        <input class="form-check-input" type="checkbox" name="expInclude" value="EXECUTIVE" id="expIncludeExecutive">
+                                                        <input class="form-check-input" type="checkbox" name="expInclude" value="Executive" id="expIncludeExecutive">
                                                         <label class="form-check-label" for="expIncludeExecutive">Executive</label>
                                                     </div>
                                                     <div class="form-check mb-2">
-                                                        <input class="form-check-input" type="checkbox" name="expInclude" value="NOT_APPLICABLE" id="expIncludeNotApplicable" checked>
+                                                        <input class="form-check-input" type="checkbox" name="expInclude" value="Not specified" id="expIncludeNotApplicable" checked>
                                                         <label class="form-check-label" for="expIncludeNotApplicable">Not Specified</label>
                                                     </div>
                                                     
@@ -387,61 +404,11 @@
                                                 </div>
                                             </div>
                                         </div>
-                                        <div class="col-md-6">
-                                            <div class="card h-100">
-                                                <div class="card-header bg-danger bg-opacity-10">
-                                                    <h6 class="mb-0">
-                                                        <i class="bi bi-x-lg me-1"></i> Exclude These Experience Levels
-                                                    </h6>
-                                                </div>
-                                                <div class="card-body">
-                                                    <p class="text-muted small">Jobs matching these experience levels will be excluded from results</p>
-                                                    
-                                                    <div class="form-check mb-2">
-                                                        <input class="form-check-input" type="checkbox" name="expExclude" value="INTERNSHIP" id="expExcludeInternship">
-                                                        <label class="form-check-label" for="expExcludeInternship">Internship</label>
-                                                    </div>
-                                                    <div class="form-check mb-2">
-                                                        <input class="form-check-input" type="checkbox" name="expExclude" value="ENTRY_LEVEL" id="expExcludeEntry">
-                                                        <label class="form-check-label" for="expExcludeEntry">Entry Level</label>
-                                                    </div>
-                                                    <div class="form-check mb-2">
-                                                        <input class="form-check-input" type="checkbox" name="expExclude" value="ASSOCIATE" id="expExcludeAssociate">
-                                                        <label class="form-check-label" for="expExcludeAssociate">Associate</label>
-                                                    </div>
-                                                    <div class="form-check mb-2">
-                                                        <input class="form-check-input" type="checkbox" name="expExclude" value="MID_SENIOR" id="expExcludeMidSenior">
-                                                        <label class="form-check-label" for="expExcludeMidSenior">Mid-Senior Level</label>
-                                                    </div>
-                                                    <div class="form-check mb-2">
-                                                        <input class="form-check-input" type="checkbox" name="expExclude" value="DIRECTOR" id="expExcludeDirector" checked>
-                                                        <label class="form-check-label" for="expExcludeDirector">Director</label>
-                                                    </div>
-                                                    <div class="form-check mb-2">
-                                                        <input class="form-check-input" type="checkbox" name="expExclude" value="EXECUTIVE" id="expExcludeExecutive" checked>
-                                                        <label class="form-check-label" for="expExcludeExecutive">Executive</label>
-                                                    </div>
-                                                    <div class="form-check mb-2">
-                                                        <input class="form-check-input" type="checkbox" name="expExclude" value="NOT_APPLICABLE" id="expExcludeNotApplicable">
-                                                        <label class="form-check-label" for="expExcludeNotApplicable">Not Specified</label>
-                                                    </div>
-                                                    
-                                                    <div class="d-flex gap-2 mt-2">
-                                                        <button class="btn btn-sm btn-outline-secondary" id="selectAllExclude">
-                                                            <i class="bi bi-check-all me-1"></i> Select All
-                                                        </button>
-                                                        <button class="btn btn-sm btn-outline-secondary" id="clearAllExclude">
-                                                            <i class="bi bi-x-lg me-1"></i> Clear All
-                                                        </button>
-                                                    </div>
-                                                </div>
-                                            </div>
-                                        </div>
                                     </div>
                                     
                                     <div class="alert alert-info mt-3">
                                         <i class="bi bi-info-circle-fill me-2"></i>
-                                        <strong>Note:</strong> These experience level values match LinkedIn's internal categorization. Jobs can be in both include and exclude lists - exclude takes precedence.
+                                        <strong>Note:</strong> Each selected experience level will be searched separately. Jobs will be labeled with the experience level from the search that found them.
                                     </div>
                                 </div>
                             
@@ -476,6 +443,12 @@
                              role="progressbar" style="width: 0%;" aria-valuenow="0" aria-valuemin="0" aria-valuemax="100">
                             <span id="progressBarText">Starting scrape...</span>
                         </div>
+                    </div>
+                    
+                    <!-- Experience level progress indicator -->
+                    <div class="d-flex justify-content-between mb-3">
+                        <span id="experienceLevelProgress" class="badge bg-info">Preparing experience levels...</span>
+                        <span id="pageProgress" class="badge bg-secondary">Pages: 0/0</span>
                     </div>
                     
                     <!-- Status updates -->
@@ -522,6 +495,42 @@
                 <div class="modal-footer">
                     <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
                     <button type="button" class="btn btn-primary" id="saveConfigConfirmBtn">Save</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- User Data Wipe Modal -->
+    <div class="modal fade" id="wipeDataModal" tabindex="-1" aria-labelledby="wipeDataModalLabel" aria-hidden="true">
+        <div class="modal-dialog">
+            <div class="modal-content">
+                <div class="modal-header bg-danger text-white">
+                    <h5 class="modal-title" id="wipeDataModalLabel">
+                        <i class="bi bi-exclamation-triangle-fill me-2"></i>Delete All Your Data
+                    </h5>
+                    <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+                <div class="modal-body">
+                    <div class="alert alert-warning">
+                        <strong>Warning:</strong> This action will permanently delete all your data, including:
+                        <ul class="mt-2">
+                            <li>All saved jobs</li>
+                            <li>All scraper configurations</li>
+                            <li>All search history</li>
+                        </ul>
+                        <p class="mb-0 mt-2"><strong>This action cannot be undone.</strong></p>
+                    </div>
+                    <p>To confirm, please type "<strong>DELETE</strong>" in the field below:</p>
+                    <input type="text" class="form-control" id="deleteConfirmInput" placeholder="Type DELETE to confirm">
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+                    <form th:action="@{/wipe-user-data}" method="post">
+                        <input type="hidden" th:name="${_csrf.parameterName}" th:value="${_csrf.token}" />
+                        <button type="submit" class="btn btn-danger" id="confirmDeleteBtn" disabled>
+                            <i class="bi bi-trash me-2"></i>Permanently Delete My Data
+                        </button>
+                    </form>
                 </div>
             </div>
         </div>

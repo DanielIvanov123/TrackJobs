@@ -54,9 +54,6 @@ public class SavedScraperConfig {
     @Column(length = 1000)
     private String experienceLevelInclude;
     
-    @Column(length = 1000)
-    private String experienceLevelExclude;
-    
     @Column(name = "created_at")
     private LocalDateTime createdAt;
     

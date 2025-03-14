@@ -16,4 +16,6 @@ public interface ScraperConfigRepository extends JpaRepository<SavedScraperConfi
     Optional<SavedScraperConfig> findByIdAndUser(Long id, User user);
     
     boolean existsByNameAndUser(String name, User user);
+
+    void deleteByUser(User user);
 }

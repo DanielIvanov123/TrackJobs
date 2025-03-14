@@ -43,7 +43,6 @@ public class ScraperConfigService {
         String companyExcludeWords = String.join(",", config.getCompanyExcludeWords());
         String descriptionExcludeWords = String.join(",", config.getDescriptionExcludeWords());
         String experienceLevelInclude = String.join(",", config.getExperienceLevelInclude());
-        String experienceLevelExclude = String.join(",", config.getExperienceLevelExclude());
         
         // Create new saved config
         SavedScraperConfig savedConfig = SavedScraperConfig.builder()
@@ -60,7 +59,6 @@ public class ScraperConfigService {
                 .companyExcludeWords(companyExcludeWords)
                 .descriptionExcludeWords(descriptionExcludeWords)
                 .experienceLevelInclude(experienceLevelInclude)
-                .experienceLevelExclude(experienceLevelExclude)
                 .user(currentUser)
                 .createdAt(LocalDateTime.now())
                 .build();
@@ -112,7 +110,6 @@ public class ScraperConfigService {
                 .companyExcludeWords(splitCommaSeparated(savedConfig.getCompanyExcludeWords()))
                 .descriptionExcludeWords(splitCommaSeparated(savedConfig.getDescriptionExcludeWords()))
                 .experienceLevelInclude(splitCommaSeparated(savedConfig.getExperienceLevelInclude()))
-                .experienceLevelExclude(splitCommaSeparated(savedConfig.getExperienceLevelExclude()))
                 .build();
     }
     

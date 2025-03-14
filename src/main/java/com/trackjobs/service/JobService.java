@@ -5,6 +5,8 @@ import com.trackjobs.model.ScrapingConfig;
 import com.trackjobs.model.User;
 import com.trackjobs.repository.JobRepository;
 import lombok.extern.slf4j.Slf4j;
+import com.trackjobs.model.ScrapingProgress;
+
 import com.trackjobs.service.UserService;
 
 import org.springframework.beans.factory.annotation.Autowired;
@@ -173,10 +175,9 @@ public class JobService {
         if (currentUser == null) {
             throw new IllegalStateException("You must be logged in to scrape jobs");
         }
-        
-        // Log for debugging
+
         log.info("Scraping jobs for user: {} (ID: {})", currentUser.getUsername(), currentUser.getId());
-        
+
         // Set the current user in the config
         config.setUser(currentUser);
         

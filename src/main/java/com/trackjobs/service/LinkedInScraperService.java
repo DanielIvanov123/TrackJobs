@@ -50,6 +50,7 @@ public class LinkedInScraperService {
     
     /**
      * Scrape LinkedIn jobs based on the provided configuration
+     * Performs separate searches for each included experience level
      * 
      * @param config The scraping configuration
      * @return A list of scraped jobs
@@ -67,88 +68,62 @@ public class LinkedInScraperService {
         // Record start time for performance tracking
         long startTime = System.currentTimeMillis();
         
-        // Ensure pages to scrape doesn't exceed the maximum
-        int pagesToScrape = Math.min(config.getPagesToScrape(), maxPages);
-        List<Job> allScrapedJobs = new ArrayList<>();  // All jobs found from scraping
-        List<Job> filteredJobs = new ArrayList<>();    // Jobs after filtering
-        Map<String, String> cookies = new HashMap<>();
-        
         // Set scrape date to track this batch
         LocalDate scrapeDate = LocalDate.now();
         
+        // Combined list of all jobs from all experience level searches
+        List<Job> allScrapedJobs = new ArrayList<>();
+        
         try {
             // Initialize session by getting cookies
+            Map<String, String> cookies = new HashMap<>();
             initializeSession(cookies);
             log.info("LinkedIn session initialized successfully");
             
-            // Scrape each page
-            for (int page = 0; page < pagesToScrape; page++) {
-                log.info("Scraping page {} of {}", page + 1, pagesToScrape);
-                config.setPagesScraped(page + 1);
+            List<String> experienceLevelsToSearch;
+            
+            // If experience levels are specified, search for each level separately
+            if (config.getExperienceLevelInclude() != null && !config.getExperienceLevelInclude().isEmpty()) {
+                experienceLevelsToSearch = config.getExperienceLevelInclude();
+                log.info("Will search for the following experience levels: {}", experienceLevelsToSearch);
+            } else {
+                // If no specific levels are included, do a single search without experience filter
+                experienceLevelsToSearch = Collections.singletonList("Not specified");
+                log.info("No specific experience levels selected, will perform a single general search");
+            }
+            
+            // Track jobs by URL to avoid duplicates across experience level searches
+            Set<String> processedJobUrls = new HashSet<>();
+            
+            // Perform separate searches for each experience level
+            for (String experienceLevel : experienceLevelsToSearch) {
+                log.info("Searching for jobs with experience level: {}", experienceLevel);
                 
-                // Build the search URL for this page
-                String url = buildSearchUrl(config, page);
+                // Clone the config but set the specific experience level
+                ScrapingConfig levelConfig = cloneConfigWithExperienceLevel(config, experienceLevel);
                 
-                // Get the page content
-                log.debug("Requesting URL: {}", url);
-                Document doc = getPageWithRetry(url, cookies);
-                if (doc == null) {
-                    log.warn("Failed to retrieve page {} after retries", page + 1);
-                    continue;
-                }
+                // Scrape jobs for this specific experience level
+                List<Job> jobsForLevel = scrapeJobsForExperienceLevel(levelConfig, scrapeDate, cookies, processedJobUrls);
                 
-                // Extract jobs from the page
-                List<Job> pageJobs = extractJobsFromPage(doc, scrapeDate, config);
-                config.setTotalJobsFound(config.getTotalJobsFound() + pageJobs.size());
+                // Update the original config with stats from this scrape
+                config.setPagesScraped(config.getPagesScraped() + levelConfig.getPagesScraped());
+                config.setTotalJobsFound(config.getTotalJobsFound() + levelConfig.getTotalJobsFound());
+                config.setDuplicatesSkipped(config.getDuplicatesSkipped() + levelConfig.getDuplicatesSkipped());
                 
-                if (pageJobs.isEmpty()) {
-                    log.info("No jobs found on page {}, ending scrape", page + 1);
-                    break;
-                }
+                // Add jobs to the combined list
+                allScrapedJobs.addAll(jobsForLevel);
                 
-                allScrapedJobs.addAll(pageJobs);
-                log.info("Found {} jobs on page {}", pageJobs.size(), page + 1);
+                log.info("Completed search for experience level '{}'. Found {} jobs", 
+                        experienceLevel, jobsForLevel.size());
                 
-                // Get job details for each job (if we have less than 50 jobs to keep it reasonable)
-                if (pageJobs.size() <= 50) {
-                    int jobCount = 0;
-                    for (Job job : pageJobs) {
-                        try {
-                            jobCount++;
-                            log.info("Getting details for job {}/{}: {} at {}", 
-                                    jobCount, pageJobs.size(), job.getTitle(), job.getCompany());
-                            
-                            // Add a delay between requests to avoid rate limiting
-                            Thread.sleep(requestDelay);
-                            
-                            // Get the job details page if URL is available
-                            if (job.getUrl() != null && !job.getUrl().isEmpty()) {
-                                Document jobDoc = getPageWithRetry(job.getUrl(), cookies);
-                                if (jobDoc != null) {
-                                    // Extract job description from the details page
-                                    String description = extractJobDescription(jobDoc);
-                                    job.setDescription(description);
-                                    log.debug("Successfully extracted description for job: {}", job.getTitle());
-                                }
-                            }
-                        } catch (Exception e) {
-                            log.warn("Error getting details for job {}: {}", job.getTitle(), e.getMessage());
-                        }
-                    }
-                } else {
-                    log.info("Skipping detailed job scraping for page {} as there are too many jobs ({})", 
-                            page + 1, pageJobs.size());
-                }
-                
-                // Add a delay before next page to avoid rate limiting
-                if (page < pagesToScrape - 1) {
-                    log.debug("Waiting for {} ms before scraping next page", requestDelay);
-                    Thread.sleep(requestDelay);
+                // Add a delay between experience level searches to avoid rate limiting
+                if (experienceLevelsToSearch.indexOf(experienceLevel) < experienceLevelsToSearch.size() - 1) {
+                    Thread.sleep(requestDelay * 2);
                 }
             }
             
-            // Apply filters to the scraped jobs
-            filteredJobs = filterJobs(allScrapedJobs, config);
+            // Apply other filters (but not experience level filtering)
+            List<Job> filteredJobs = filterJobsExceptExperience(allScrapedJobs, config);
             config.setJobsAfterFiltering(filteredJobs.size());
             
             log.info("Filtering complete: {} jobs after filtering (from {} total jobs)", 
@@ -170,7 +145,147 @@ public class LinkedInScraperService {
                 config.getPagesScraped(), config.getTotalJobsFound(), config.getJobsAfterFiltering(), 
                 config.getDuplicatesSkipped());
         
-        return filteredJobs;
+        return allScrapedJobs;
+    }
+
+    /**
+     * Clone the config with a specific experience level
+     */
+    private ScrapingConfig cloneConfigWithExperienceLevel(ScrapingConfig original, String experienceLevel) {
+        return ScrapingConfig.builder()
+            .keywords(original.getKeywords())
+            .location(original.getLocation())
+            .pagesToScrape(original.getPagesToScrape())
+            .experienceLevel(experienceLevel)
+            .jobType(original.getJobType())
+            .remoteOnly(original.isRemoteOnly())
+            .daysOld(original.getDaysOld())
+            .titleIncludeWords(original.getTitleIncludeWords())
+            .titleExcludeWords(original.getTitleExcludeWords())
+            .companyExcludeWords(original.getCompanyExcludeWords())
+            .descriptionExcludeWords(original.getDescriptionExcludeWords())
+            .experienceLevelInclude(original.getExperienceLevelInclude())
+            .user(original.getUser())
+            .build();
+    }
+
+    /**
+     * Scrape jobs for a specific experience level
+     */
+    private List<Job> scrapeJobsForExperienceLevel(ScrapingConfig config, LocalDate scrapeDate, 
+                                                Map<String, String> cookies, Set<String> processedJobUrls) 
+                                                throws InterruptedException {
+        
+        String experienceLevelName = config.getExperienceLevel() != null ? 
+                config.getExperienceLevel() : "Not specified";
+        
+        List<Job> jobsForLevel = new ArrayList<>();
+        int pagesToScrape = Math.min(config.getPagesToScrape(), maxPages);
+        
+        log.info("====== PROGRESS: Starting search for experience level: {} ======", experienceLevelName);
+        
+        // Scrape each page
+        for (int page = 0; page < pagesToScrape; page++) {
+            log.info("====== PROGRESS: Scraping page {} of {} for experience level '{}' ======", 
+                    page + 1, pagesToScrape, experienceLevelName);
+            config.setPagesScraped(page + 1);
+            
+            // Build the search URL for this page
+            String url = buildSearchUrl(config, page);
+            log.debug("Request URL: {}", url);
+            
+            // Get the page content
+            Document doc = getPageWithRetry(url, cookies);
+            if (doc == null) {
+                log.warn("Failed to retrieve page {} after retries", page + 1);
+                continue;
+            }
+            
+            // Extract jobs from the page
+            List<Job> pageJobs = extractJobsFromPage(doc, scrapeDate, config, experienceLevelName);
+            config.setTotalJobsFound(config.getTotalJobsFound() + pageJobs.size());
+            
+            if (pageJobs.isEmpty()) {
+                log.info("No jobs found on page {} for experience level '{}', ending scrape", 
+                        page + 1, experienceLevelName);
+                break;
+            }
+            
+            // Filter out duplicates from previous experience level searches
+            List<Job> uniqueJobs = new ArrayList<>();
+            for (Job job : pageJobs) {
+                if (job.getUrl() != null && !job.getUrl().isEmpty()) {
+                    if (!processedJobUrls.contains(job.getUrl())) {
+                        processedJobUrls.add(job.getUrl());
+                        uniqueJobs.add(job);
+                    } else {
+                        config.setDuplicatesSkipped(config.getDuplicatesSkipped() + 1);
+                    }
+                } else {
+                    // For jobs without URL, add them anyway (no way to deduplicate)
+                    uniqueJobs.add(job);
+                }
+            }
+            
+            log.info("Found {} unique jobs on page {} for experience level '{}'", 
+                    uniqueJobs.size(), page + 1, experienceLevelName);
+            
+            // Get job details (as in the original code)
+            if (uniqueJobs.size() <= 50) {
+                int jobCount = 0;
+                int totalJobs = uniqueJobs.size();
+                
+                log.info("====== PROGRESS: Starting job details scraping for {} jobs ======", totalJobs);
+                
+                for (Job job : uniqueJobs) {
+                    try {
+                        jobCount++;
+                        log.info("====== PROGRESS: Getting details for job {}/{}: {} ======", 
+                                jobCount, totalJobs, job.getTitle());
+                        
+                        // Add a delay between requests to avoid rate limiting
+                        Thread.sleep(requestDelay);
+                        
+                        // Get the job details page if URL is available
+                        if (job.getUrl() != null && !job.getUrl().isEmpty()) {
+                            Document jobDoc = getPageWithRetry(job.getUrl(), cookies);
+                            if (jobDoc != null) {
+                                // Extract job description from the details page
+                                String description = extractJobDescription(jobDoc);
+                                job.setDescription(description);
+                                log.info("====== PROGRESS: Successfully extracted description ({} chars) for job {}/{} ======", 
+                                        description != null ? description.length() : 0, jobCount, totalJobs);
+                            } else {
+                                log.warn("====== PROGRESS: Failed to retrieve job details page for job {}/{} ======", 
+                                        jobCount, totalJobs);
+                            }
+                        } else {
+                            log.info("====== PROGRESS: No URL available for job {}/{} ======", jobCount, totalJobs);
+                        }
+                    } catch (Exception e) {
+                        log.warn("Error getting details for job {}: {}", job.getTitle(), e.getMessage());
+                    }
+                }
+                
+                log.info("====== PROGRESS: Completed job details scraping for {} jobs ======", totalJobs);
+            } else {
+                log.info("Skipping detailed job scraping for page {} as there are too many jobs ({})", 
+                        page + 1, uniqueJobs.size());
+            }
+            
+            jobsForLevel.addAll(uniqueJobs);
+            
+            // Add a delay before next page to avoid rate limiting
+            if (page < pagesToScrape - 1) {
+                log.debug("Waiting for {} ms before scraping next page", requestDelay);
+                Thread.sleep(requestDelay);
+            }
+            
+            log.info("====== PROGRESS: Completed page {} for experience level '{}'. Found {} jobs ======", 
+                    page + 1, experienceLevelName, jobsForLevel.size());
+        }
+        
+        return jobsForLevel;
     }
     
     /**
@@ -178,21 +293,46 @@ public class LinkedInScraperService {
      */
     private void initializeSession(Map<String, String> cookies) throws IOException {
         log.debug("Initializing LinkedIn session");
+        int maxRetries = 3;
+        IOException lastException = null;
         
-        // Get random user agent
-        String randomUserAgent = getRandomUserAgent();
+        for (int attempt = 1; attempt <= maxRetries; attempt++) {
+            try {
+                // Get random user agent
+                String randomUserAgent = getRandomUserAgent();
+                
+                log.debug("Connecting to LinkedIn with user agent: {}", randomUserAgent);
+                
+                // Connect to LinkedIn homepage to get initial cookies
+                Connection.Response response = Jsoup.connect("https://www.linkedin.com/")
+                    .userAgent(randomUserAgent)
+                    .method(Connection.Method.GET)
+                    .timeout(30000)
+                    .execute();
+                
+                // Save cookies for future requests
+                cookies.putAll(response.cookies());
+                
+                log.info("Session initialized successfully with {} cookies", cookies.size());
+                return;
+            } catch (IOException e) {
+                lastException = e;
+                log.warn("Failed to connect to LinkedIn (attempt {}/{}): {}", 
+                         attempt, maxRetries, e.getMessage());
+                
+                // Wait before retrying
+                try {
+                    Thread.sleep(requestDelay * attempt);
+                } catch (InterruptedException ie) {
+                    Thread.currentThread().interrupt();
+                    throw new IOException("Connection interrupted", ie);
+                }
+            }
+        }
         
-        // Connect to LinkedIn homepage to get initial cookies
-        Connection.Response response = Jsoup.connect("https://www.linkedin.com/")
-            .userAgent(randomUserAgent)
-            .method(Connection.Method.GET)
-            .timeout(30000)
-            .execute();
-        
-        // Save cookies for future requests
-        cookies.putAll(response.cookies());
-        
-        log.debug("Session initialized with {} cookies", cookies.size());
+        // If we get here, all attempts failed
+        throw new IOException("Failed to connect to LinkedIn after " + maxRetries + " attempts", 
+                              lastException);
     }
     
     /**
@@ -226,7 +366,14 @@ public class LinkedInScraperService {
         
         // Add experience level filter if specified
         if (config.getExperienceLevel() != null && !config.getExperienceLevel().isEmpty()) {
-            urlBuilder.append("&f_E=").append(mapExperienceLevelToLinkedInCode(config.getExperienceLevel()));
+            String expCode = mapExperienceLevelToLinkedInCode(config.getExperienceLevel());
+            if (!expCode.isEmpty()) {
+                urlBuilder.append("&f_E=").append(expCode);
+                
+                // Log the experience level code being used
+                log.debug("Adding experience level: {} (code: {})", 
+                         config.getExperienceLevel(), expCode);
+            }
         }
         
         // Add job type filter if specified
@@ -239,16 +386,6 @@ public class LinkedInScraperService {
             String dateCode = mapDaysOldToLinkedInCode(config.getDaysOld());
             if (dateCode != null) {
                 urlBuilder.append("&f_TPR=").append(dateCode);
-            }
-        }
-        
-        // Add additional experience level filters if specified (from codebase1)
-        if (config.getExperienceLevelInclude() != null && !config.getExperienceLevelInclude().isEmpty()) {
-            for (String level : config.getExperienceLevelInclude()) {
-                String code = mapExperienceLevelToLinkedInCode(level);
-                if (!code.isEmpty()) {
-                    urlBuilder.append("&f_E=").append(code);
-                }
             }
         }
         
@@ -270,14 +407,27 @@ public class LinkedInScraperService {
     private String mapExperienceLevelToLinkedInCode(String experienceLevel) {
         if (experienceLevel == null) return "";
         
-        switch (experienceLevel.toUpperCase()) {
+        // Normalize the experience level to handle different formats
+        String normalizedLevel = experienceLevel.toUpperCase()
+                                 .replace("-", "_")
+                                 .replace(" ", "_");
+        
+        switch (normalizedLevel) {
             case "INTERNSHIP": return "1";
             case "ENTRY_LEVEL": return "2";
             case "ASSOCIATE": return "3";
-            case "MID_SENIOR": return "4";
+            case "MID_SENIOR_LEVEL": return "4";
             case "DIRECTOR": return "5";
             case "EXECUTIVE": return "6";
-            default: return "";
+            default:
+                // Try to match with more flexible patterns
+                if (normalizedLevel.contains("INTERN")) return "1";
+                if (normalizedLevel.contains("ENTRY") || normalizedLevel.contains("JUNIOR")) return "2";
+                if (normalizedLevel.contains("ASSOCIATE")) return "3";
+                if (normalizedLevel.contains("MID") || normalizedLevel.contains("SENIOR")) return "4";
+                if (normalizedLevel.contains("DIRECTOR")) return "5";
+                if (normalizedLevel.contains("EXEC")) return "6";
+                return "";
         }
     }
     
@@ -286,13 +436,13 @@ public class LinkedInScraperService {
      */
     private String mapLinkedInCodeToExperienceLevel(String code) {
         switch (code) {
-            case "1": return "INTERNSHIP";
-            case "2": return "ENTRY_LEVEL"; 
-            case "3": return "ASSOCIATE";
-            case "4": return "MID_SENIOR";
-            case "5": return "DIRECTOR";
-            case "6": return "EXECUTIVE";
-            default: return "NOT_APPLICABLE";
+            case "1": return "Internship";
+            case "2": return "Entry level"; 
+            case "3": return "Associate";
+            case "4": return "Mid-Senior level";
+            case "5": return "Director";
+            case "6": return "Executive";
+            default: return "Not specified";
         }
     }
     
@@ -374,9 +524,9 @@ public class LinkedInScraperService {
     }
     
     /**
-     * Extract jobs from a search results page
+     * Extract jobs from a search results page and assign the experience level from the search
      */
-    private List<Job> extractJobsFromPage(Document doc, LocalDate scrapeDate, ScrapingConfig config) {
+    private List<Job> extractJobsFromPage(Document doc, LocalDate scrapeDate, ScrapingConfig config, String experienceLevel) {
         List<Job> jobs = new ArrayList<>();
         
         // Find all job cards in the document
@@ -426,9 +576,10 @@ public class LinkedInScraperService {
                 // Determine job type from listing
                 String jobType = determineJobType(card);
                 
-                log.debug("Extracted job: title={}, company={}, location={}", title, company, location);
+                log.debug("Extracted job: title={}, company={}, location={}, experience={}", 
+                         title, company, location, experienceLevel);
                 
-                // Create and add the job
+                // Create and add the job - use the experience level from the search
                 Job job = Job.builder()
                     .title(title)
                     .company(company)
@@ -436,7 +587,7 @@ public class LinkedInScraperService {
                     .url(url)
                     .datePosted(datePosted)
                     .dateScraped(scrapeDate)
-                    .experienceLevel(determineExperienceLevel(title, null))
+                    .experienceLevel(experienceLevel)  // Use the experience level from the search
                     .jobType(jobType)
                     .build();
                 
@@ -451,266 +602,10 @@ public class LinkedInScraperService {
     }
     
     /**
-     * Determine experience level from job title and standardize to LinkedIn's categorization
-     * @param title The job title
-     * @param description The job description
-     * @return The standardized LinkedIn experience level
+     * Filter jobs based on config filters except experience level
+     * (since we've already handled that by assigning experience level from the search)
      */
-    private String determineExperienceLevel(String title, String description) {
-        String lowerTitle = title.toLowerCase();
-        String lowerDescription = description != null ? description.toLowerCase() : "";
-        
-        // Try to determine from title first (most accurate)
-        if (lowerTitle.contains("intern") || lowerTitle.contains("internship")) {
-            return "INTERNSHIP";
-        } else if (lowerTitle.contains("ceo") || lowerTitle.contains("chief") || 
-                lowerTitle.contains("president") || lowerTitle.contains("vp") || 
-                lowerTitle.contains("vice president")) {
-            return "EXECUTIVE";
-        } else if (lowerTitle.contains("director") || lowerTitle.contains("head of") || 
-                lowerTitle.contains("principal")) {
-            return "DIRECTOR";
-        } else if (lowerTitle.contains("senior") || lowerTitle.contains("sr.") || 
-                lowerTitle.contains("lead") || lowerTitle.contains("staff")) {
-            return "MID_SENIOR";
-        } else if (lowerTitle.contains("junior") || lowerTitle.contains("jr.") || 
-                lowerTitle.contains("entry") || lowerTitle.contains("associate") || 
-                lowerTitle.contains("assistant")) {
-            return "ENTRY_LEVEL";
-        }
-        
-        // Fall back to description if available
-        if (!lowerDescription.isEmpty()) {
-            if (lowerDescription.contains("internship") || lowerDescription.contains("intern program")) {
-                return "INTERNSHIP";
-            } else if (lowerDescription.contains("executive") || lowerDescription.contains("c-suite")) {
-                return "EXECUTIVE";
-            } else if (lowerDescription.contains("director role") || lowerDescription.contains("director position")) {
-                return "DIRECTOR";
-            } else if (lowerDescription.contains("senior") || lowerDescription.contains("experienced")) {
-                return "MID_SENIOR";
-            } else if (lowerDescription.contains("entry level") || lowerDescription.contains("junior")) {
-                return "ENTRY_LEVEL";
-            } else if (lowerDescription.contains("associate position") || lowerDescription.contains("associate role")) {
-                return "ASSOCIATE";
-            }
-        }
-        
-        // If we couldn't determine specifically, default to "NOT_APPLICABLE"
-        return "NOT_APPLICABLE";
-    }
-    
-    /**
-     * Determine the LinkedIn numeric code for an experience level string
-     * This method is used during filtering to convert experience level strings to LinkedIn codes
-     * 
-     * @param experienceLevel The experience level string
-     * @return The LinkedIn numeric code for the experience level
-     */
-    private String determineExperienceLevelCode(String experienceLevel) {
-        if (experienceLevel == null) return "0";
-        
-        switch (experienceLevel.toUpperCase()) {
-            case "INTERNSHIP":
-                return "1";
-            case "ENTRY_LEVEL":
-            case "ENTRY LEVEL":
-            case "JUNIOR":
-                return "2";
-            case "ASSOCIATE":
-                return "3";
-            case "MID_SENIOR":
-            case "MID-SENIOR":
-            case "SENIOR":
-            case "MID-LEVEL":
-                return "4";
-            case "DIRECTOR":
-                return "5";
-            case "EXECUTIVE":
-                return "6";
-            case "NOT_APPLICABLE":
-            case "NOT SPECIFIED":
-                return "0";
-            default:
-                return "0";
-        }
-    }
-    
-    /**
-     * Convert a job's experience level to a standardized format
-     * @param job The job to update
-     * @return The updated job with standardized experience level
-     */
-    private Job standardizeJobExperienceLevel(Job job) {
-        if (job.getExperienceLevel() == null || job.getExperienceLevel().isEmpty()) {
-            job.setExperienceLevel("NOT_APPLICABLE");
-        } else {
-            // Convert any non-standard format to our standard format
-            String standardLevel;
-            
-            switch (job.getExperienceLevel().toUpperCase()) {
-                case "INTERNSHIP":
-                case "INTERN":
-                    standardLevel = "INTERNSHIP";
-                    break;
-                case "ENTRY LEVEL":
-                case "JUNIOR":
-                case "JR":
-                    standardLevel = "ENTRY_LEVEL";
-                    break;
-                case "ASSOCIATE":
-                    standardLevel = "ASSOCIATE";
-                    break;
-                case "MID-LEVEL":
-                case "SENIOR":
-                case "SR":
-                case "LEAD":
-                    standardLevel = "MID_SENIOR";
-                    break;
-                case "DIRECTOR":
-                case "HEAD OF":
-                case "PRINCIPAL":
-                    standardLevel = "DIRECTOR";
-                    break;
-                case "EXECUTIVE":
-                case "VP":
-                case "CHIEF":
-                case "CEO":
-                case "CTO":
-                case "CFO":
-                    standardLevel = "EXECUTIVE";
-                    break;
-                default:
-                    standardLevel = "NOT_APPLICABLE";
-            }
-            
-            job.setExperienceLevel(standardLevel);
-        }
-        
-        return job;
-    }
-    
-    /**
-     * Apply experience level filters to a list of jobs
-     * @param jobs The list of jobs to filter
-     * @param experienceLevelInclude The list of experience levels to include
-     * @param experienceLevelExclude The list of experience levels to exclude
-     * @return The filtered list of jobs
-     */
-    private List<Job> applyExperienceLevelFilters(List<Job> jobs, List<String> experienceLevelInclude, List<String> experienceLevelExclude) {
-        if (jobs.isEmpty()) {
-            return jobs;
-        }
-        
-        log.info("Applying experience level filters - Include: {}, Exclude: {}", 
-            experienceLevelInclude, experienceLevelExclude);
-        
-        // Skip filtering if both include and exclude are empty
-        if ((experienceLevelInclude == null || experienceLevelInclude.isEmpty()) &&
-            (experienceLevelExclude == null || experienceLevelExclude.isEmpty())) {
-            log.info("No experience level filters to apply");
-            return jobs;
-        }
-        
-        int beforeCount = jobs.size();
-        List<Job> filteredJobs = new ArrayList<>(jobs);
-        
-        // Handle exclude first (exclude takes precedence)
-        if (experienceLevelExclude != null && !experienceLevelExclude.isEmpty()) {
-            filteredJobs = filteredJobs.stream()
-                .filter(job -> {
-                    // For each job, get its experience level code
-                    String levelCode = determineExperienceLevelCode(job.getExperienceLevel());
-                    
-                    // Keep the job if its level is NOT in the exclude list
-                    boolean keep = experienceLevelExclude.stream()
-                        .noneMatch(excludeLevel -> {
-                            String excludeCode = mapExperienceLevelToLinkedInCode(excludeLevel);
-                            return levelCode.equals(excludeCode);
-                        });
-                        
-                    if (!keep) {
-                        log.debug("Excluded job by experience level: {} ({})", job.getTitle(), job.getExperienceLevel());
-                    }
-                    return keep;
-                })
-                .collect(Collectors.toList());
-        }
-        
-        // Then apply include filter if specified
-        if (experienceLevelInclude != null && !experienceLevelInclude.isEmpty()) {
-            filteredJobs = filteredJobs.stream()
-                .filter(job -> {
-                    // For each job, get its experience level code
-                    String levelCode = determineExperienceLevelCode(job.getExperienceLevel());
-                    
-                    // "NOT_APPLICABLE" (code "0") is always included if specified
-                    if (levelCode.equals("0") && experienceLevelInclude.contains("NOT_APPLICABLE")) {
-                        return true;
-                    }
-                    
-                    // Keep the job if its level IS in the include list
-                    boolean keep = experienceLevelInclude.stream()
-                        .anyMatch(includeLevel -> {
-                            String includeCode = mapExperienceLevelToLinkedInCode(includeLevel);
-                            return levelCode.equals(includeCode);
-                        });
-                        
-                    if (!keep) {
-                        log.debug("Filtered out job not in include list: {} ({})", job.getTitle(), job.getExperienceLevel());
-                    }
-                    return keep;
-                })
-                .collect(Collectors.toList());
-        }
-        
-        log.info("Experience level filtering: {} -> {} jobs", beforeCount, filteredJobs.size());
-        return filteredJobs;
-    }
-    
-    /**
-     * Determine job type from the job card
-     */
-    private String determineJobType(Element card) {
-        String cardText = card.text().toLowerCase();
-        
-        if (cardText.contains("full-time") || cardText.contains("full time")) {
-            return "Full-time";
-        } else if (cardText.contains("part-time") || cardText.contains("part time")) {
-            return "Part-time";
-        } else if (cardText.contains("contract")) {
-            return "Contract";
-        } else if (cardText.contains("temporary") || cardText.contains("temp")) {
-            return "Temporary";
-        } else if (cardText.contains("intern") || cardText.contains("internship")) {
-            return "Internship";
-        } else {
-            return "Full-time";  // Default to full-time
-        }
-    }
-    
-    /**
-     * Extract job description from job details page
-     */
-    private String extractJobDescription(Document doc) {
-        // Try to find the job description element
-        Element descElement = doc.selectFirst("div.description__text");
-        
-        if (descElement == null) {
-            log.debug("Description element not found in job details page");
-            return "";  // Description not found
-        }
-        
-        // Clean up the description
-        descElement.select("button").remove();  // Remove "See more" buttons
-        
-        return descElement.text().trim();
-    }
-    
-    /**
-     * Filter jobs based on config filters
-     */
-    private List<Job> filterJobs(List<Job> jobs, ScrapingConfig config) {
+    private List<Job> filterJobsExceptExperience(List<Job> jobs, ScrapingConfig config) {
         log.info("Applying filters to {} jobs", jobs.size());
         
         if (jobs.isEmpty()) {
@@ -718,11 +613,6 @@ public class LinkedInScraperService {
         }
         
         List<Job> filteredJobs = new ArrayList<>(jobs);
-        
-        // Standardize experience levels for all jobs first
-        filteredJobs = filteredJobs.stream()
-            .map(this::standardizeJobExperienceLevel)
-            .collect(Collectors.toList());
         
         // Apply title include words filter
         if (config.getTitleIncludeWords() != null && !config.getTitleIncludeWords().isEmpty()) {
@@ -779,14 +669,46 @@ public class LinkedInScraperService {
             log.info("Description exclude words filter: {} -> {} jobs", beforeCount, filteredJobs.size());
         }
         
-        // Apply experience level filtering
-        filteredJobs = applyExperienceLevelFilters(
-            filteredJobs, 
-            config.getExperienceLevelInclude(), 
-            config.getExperienceLevelExclude()
-        );
-        
         return filteredJobs;
+    }
+    
+    /**
+     * Determine job type from the job card
+     */
+    private String determineJobType(Element card) {
+        String cardText = card.text().toLowerCase();
+        
+        if (cardText.contains("full-time") || cardText.contains("full time")) {
+            return "Full-time";
+        } else if (cardText.contains("part-time") || cardText.contains("part time")) {
+            return "Part-time";
+        } else if (cardText.contains("contract")) {
+            return "Contract";
+        } else if (cardText.contains("temporary") || cardText.contains("temp")) {
+            return "Temporary";
+        } else if (cardText.contains("intern") || cardText.contains("internship")) {
+            return "Internship";
+        } else {
+            return "Full-time";  // Default to full-time
+        }
+    }
+    
+    /**
+     * Extract job description from job details page
+     */
+    private String extractJobDescription(Document doc) {
+        // Try to find the job description element
+        Element descElement = doc.selectFirst("div.description__text");
+        
+        if (descElement == null) {
+            log.debug("Description element not found in job details page");
+            return "";  // Description not found
+        }
+        
+        // Clean up the description
+        descElement.select("button").remove();  // Remove "See more" buttons
+        
+        return descElement.text().trim();
     }
     
     /**
@@ -831,7 +753,7 @@ public class LinkedInScraperService {
             }
         }
         
-        config.setDuplicatesSkipped(duplicateCount);
+        config.setDuplicatesSkipped(config.getDuplicatesSkipped() + duplicateCount);
         log.info("Saved {} new jobs to the database (skipped {} duplicates) for user: {}", 
                 savedCount, duplicateCount, user.getUsername());
     }

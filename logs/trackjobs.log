@@ -2437,3 +2437,604 @@ org.springframework.transaction.UnexpectedRollbackException: Transaction silentl
 2025-03-13 21:14:34.682 [http-nio-8080-exec-3] INFO  com.trackjobs.service.JobService - Initial search found 3 jobs
 2025-03-13 21:14:34.682 [http-nio-8080-exec-3] INFO  com.trackjobs.service.JobService - After date filter (last 7 days): 3 jobs
 2025-03-13 21:14:34.682 [http-nio-8080-exec-3] INFO  com.trackjobs.service.JobService - Final filtered results: 3 jobs
+2025-03-13 21:34:53.652 [SpringApplicationShutdownHook] INFO  o.s.o.j.LocalContainerEntityManagerFactoryBean - Closing JPA EntityManagerFactory for persistence unit 'default'
+2025-03-13 21:34:53.657 [SpringApplicationShutdownHook] INFO  com.zaxxer.hikari.HikariDataSource - HikariPool-1 - Shutdown initiated...
+2025-03-13 21:34:53.664 [SpringApplicationShutdownHook] INFO  com.zaxxer.hikari.HikariDataSource - HikariPool-1 - Shutdown completed.
+2025-03-13 21:37:52.858 [main] INFO  com.trackjobs.TrackJobsApplication - Starting TrackJobsApplication v1.0.0 using Java 21.0.6 on DanielsPC with PID 740992 (/opt/trackjobs/target/trackjobs-1.0.0.jar started by danie in /opt/trackjobs)
+2025-03-13 21:37:52.859 [main] DEBUG com.trackjobs.TrackJobsApplication - Running with Spring Boot v2.7.16, Spring v5.3.30
+2025-03-13 21:37:52.860 [main] INFO  com.trackjobs.TrackJobsApplication - No active profile set, falling back to 1 default profile: "default"
+2025-03-13 21:37:53.364 [main] INFO  o.s.d.r.c.RepositoryConfigurationDelegate - Bootstrapping Spring Data JPA repositories in DEFAULT mode.
+2025-03-13 21:37:53.405 [main] INFO  o.s.d.r.c.RepositoryConfigurationDelegate - Finished Spring Data repository scanning in 36 ms. Found 3 JPA repository interfaces.
+2025-03-13 21:37:53.765 [main] INFO  o.s.b.w.e.tomcat.TomcatWebServer - Tomcat initialized with port(s): 8080 (http)
+2025-03-13 21:37:53.772 [main] INFO  o.a.coyote.http11.Http11NioProtocol - Initializing ProtocolHandler ["http-nio-8080"]
+2025-03-13 21:37:53.775 [main] INFO  o.a.catalina.core.StandardService - Starting service [Tomcat]
+2025-03-13 21:37:53.775 [main] INFO  o.a.catalina.core.StandardEngine - Starting Servlet engine: [Apache Tomcat/9.0.80]
+2025-03-13 21:37:53.814 [main] INFO  o.a.c.c.C.[Tomcat].[localhost].[/] - Initializing Spring embedded WebApplicationContext
+2025-03-13 21:37:53.814 [main] INFO  o.s.b.w.s.c.ServletWebServerApplicationContext - Root WebApplicationContext: initialization completed in 921 ms
+2025-03-13 21:37:54.038 [main] INFO  o.h.jpa.internal.util.LogHelper - HHH000204: Processing PersistenceUnitInfo [name: default]
+2025-03-13 21:37:54.076 [main] INFO  org.hibernate.Version - HHH000412: Hibernate ORM core version 5.6.15.Final
+2025-03-13 21:37:54.162 [main] INFO  o.h.annotations.common.Version - HCANN000001: Hibernate Commons Annotations {5.1.2.Final}
+2025-03-13 21:37:54.211 [main] INFO  com.zaxxer.hikari.HikariDataSource - HikariPool-1 - Starting...
+2025-03-13 21:37:54.293 [main] INFO  com.zaxxer.hikari.HikariDataSource - HikariPool-1 - Start completed.
+2025-03-13 21:37:54.301 [main] INFO  org.hibernate.dialect.Dialect - HHH000400: Using dialect: org.hibernate.dialect.MySQL8Dialect
+2025-03-13 21:37:54.672 [main] INFO  o.h.e.t.j.p.i.JtaPlatformInitiator - HHH000490: Using JtaPlatform implementation: [org.hibernate.engine.transaction.jta.platform.internal.NoJtaPlatform]
+2025-03-13 21:37:54.677 [main] INFO  o.s.o.j.LocalContainerEntityManagerFactoryBean - Initialized JPA EntityManagerFactory for persistence unit 'default'
+2025-03-13 21:37:55.069 [main] INFO  o.s.b.a.e.web.EndpointLinksResolver - Exposing 1 endpoint(s) beneath base path '/actuator'
+2025-03-13 21:37:55.188 [main] INFO  o.s.s.web.DefaultSecurityFilterChain - Will secure any request with [org.springframework.security.web.session.DisableEncodeUrlFilter@2ffb3aec, org.springframework.security.web.context.request.async.WebAsyncManagerIntegrationFilter@786ff1cb, org.springframework.security.web.context.SecurityContextPersistenceFilter@1682c08c, org.springframework.security.web.header.HeaderWriterFilter@58f4b31a, org.springframework.security.web.csrf.CsrfFilter@d2e6b0b, org.springframework.security.web.authentication.logout.LogoutFilter@3f5156a6, org.springframework.security.web.authentication.UsernamePasswordAuthenticationFilter@3ba0ae41, org.springframework.security.web.savedrequest.RequestCacheAwareFilter@4eb9f2af, org.springframework.security.web.servletapi.SecurityContextHolderAwareRequestFilter@4a481728, org.springframework.security.web.authentication.AnonymousAuthenticationFilter@46039a21, org.springframework.security.web.session.SessionManagementFilter@72eb6200, org.springframework.security.web.access.ExceptionTranslationFilter@611640f0, org.springframework.security.web.access.intercept.FilterSecurityInterceptor@1e692555]
+2025-03-13 21:37:55.225 [main] WARN  o.s.b.a.o.j.JpaBaseConfiguration$JpaWebConfiguration - spring.jpa.open-in-view is enabled by default. Therefore, database queries may be performed during view rendering. Explicitly configure spring.jpa.open-in-view to disable this warning
+2025-03-13 21:37:55.309 [main] INFO  o.s.b.a.w.s.WelcomePageHandlerMapping - Adding welcome page template: index
+2025-03-13 21:37:55.412 [main] INFO  o.a.coyote.http11.Http11NioProtocol - Starting ProtocolHandler ["http-nio-8080"]
+2025-03-13 21:37:55.421 [main] INFO  o.s.b.w.e.tomcat.TomcatWebServer - Tomcat started on port(s): 8080 (http) with context path ''
+2025-03-13 21:37:55.432 [main] INFO  com.trackjobs.TrackJobsApplication - Started TrackJobsApplication in 2.81 seconds (JVM running for 3.162)
+2025-03-13 21:37:57.323 [http-nio-8080-exec-1] INFO  o.a.c.c.C.[Tomcat].[localhost].[/] - Initializing Spring DispatcherServlet 'dispatcherServlet'
+2025-03-13 21:37:57.324 [http-nio-8080-exec-1] INFO  o.s.web.servlet.DispatcherServlet - Initializing Servlet 'dispatcherServlet'
+2025-03-13 21:37:57.325 [http-nio-8080-exec-1] INFO  o.s.web.servlet.DispatcherServlet - Completed initialization in 1 ms
+2025-03-13 21:37:58.688 [http-nio-8080-exec-5] DEBUG com.trackjobs.service.UserService - Getting user for authenticated username: daniel ivanov
+2025-03-13 21:37:58.690 [http-nio-8080-exec-5] DEBUG com.trackjobs.service.UserService - Found user: ID=1, username=daniel ivanov
+2025-03-13 21:37:58.966 [http-nio-8080-exec-8] DEBUG com.trackjobs.service.UserService - Getting user for authenticated username: daniel ivanov
+2025-03-13 21:37:58.968 [http-nio-8080-exec-8] DEBUG com.trackjobs.service.UserService - Found user: ID=1, username=daniel ivanov
+2025-03-13 21:38:11.694 [http-nio-8080-exec-10] DEBUG com.trackjobs.service.UserService - Getting user for authenticated username: daniel ivanov
+2025-03-13 21:38:11.696 [http-nio-8080-exec-10] DEBUG com.trackjobs.service.UserService - Found user: ID=1, username=daniel ivanov
+2025-03-13 21:38:11.696 [http-nio-8080-exec-10] WARN  com.trackjobs.service.UserService - Wiping all data for user: daniel ivanov (ID: 1)
+2025-03-13 21:38:11.700 [http-nio-8080-exec-10] INFO  com.trackjobs.service.UserService - Deleted all scraper configurations for user: daniel ivanov
+2025-03-13 21:38:11.717 [http-nio-8080-exec-10] INFO  com.trackjobs.service.UserService - Deleted all jobs for user: daniel ivanov
+2025-03-13 21:38:11.717 [http-nio-8080-exec-10] WARN  com.trackjobs.service.UserService - User data wipe completed for: daniel ivanov
+2025-03-13 21:38:12.074 [http-nio-8080-exec-1] DEBUG com.trackjobs.service.UserService - Getting user for authenticated username: daniel ivanov
+2025-03-13 21:38:12.076 [http-nio-8080-exec-1] DEBUG com.trackjobs.service.UserService - Found user: ID=1, username=daniel ivanov
+2025-03-13 21:38:12.159 [http-nio-8080-exec-4] DEBUG com.trackjobs.service.UserService - Getting user for authenticated username: daniel ivanov
+2025-03-13 21:38:12.161 [http-nio-8080-exec-4] DEBUG com.trackjobs.service.UserService - Found user: ID=1, username=daniel ivanov
+2025-03-13 21:39:56.904 [http-nio-8080-exec-10] DEBUG com.trackjobs.service.UserService - Getting user for authenticated username: daniel ivanov
+2025-03-13 21:39:56.909 [http-nio-8080-exec-10] DEBUG com.trackjobs.service.UserService - Found user: ID=1, username=daniel ivanov
+2025-03-13 21:39:56.957 [http-nio-8080-exec-1] DEBUG com.trackjobs.service.UserService - Getting user for authenticated username: daniel ivanov
+2025-03-13 21:39:56.959 [http-nio-8080-exec-1] DEBUG com.trackjobs.service.UserService - Found user: ID=1, username=daniel ivanov
+2025-03-13 21:40:01.267 [http-nio-8080-exec-2] INFO  c.trackjobs.controller.JobController - New scraping request - Keywords: 'Software Engineer', Location: 'Seattle', Pages: 1
+2025-03-13 21:40:01.267 [http-nio-8080-exec-2] INFO  c.trackjobs.controller.JobController - Advanced filters - Title include: [], Title exclude: [Senior,  Principal], Company exclude: [], Description exclude: []
+2025-03-13 21:40:01.268 [http-nio-8080-exec-2] DEBUG com.trackjobs.service.UserService - Getting user for authenticated username: daniel ivanov
+2025-03-13 21:40:01.270 [http-nio-8080-exec-2] DEBUG com.trackjobs.service.UserService - Found user: ID=1, username=daniel ivanov
+2025-03-13 21:40:01.270 [http-nio-8080-exec-2] INFO  com.trackjobs.service.JobService - Scraping jobs for user: daniel ivanov (ID: 1)
+2025-03-13 21:42:42.179 [http-nio-8080-exec-7] INFO  c.trackjobs.controller.JobController - New scraping request - Keywords: 'Software Engineer', Location: 'Seattle', Pages: 1
+2025-03-13 21:42:42.180 [http-nio-8080-exec-7] INFO  c.trackjobs.controller.JobController - Advanced filters - Title include: [], Title exclude: [Senior,  Principal], Company exclude: [], Description exclude: []
+2025-03-13 21:42:42.181 [http-nio-8080-exec-7] DEBUG com.trackjobs.service.UserService - Getting user for authenticated username: daniel ivanov
+2025-03-13 21:42:42.185 [http-nio-8080-exec-7] DEBUG com.trackjobs.service.UserService - Found user: ID=1, username=daniel ivanov
+2025-03-13 21:42:42.185 [http-nio-8080-exec-7] INFO  com.trackjobs.service.JobService - Scraping jobs for user: daniel ivanov (ID: 1)
+2025-03-13 21:44:47.314 [http-nio-8080-exec-4] INFO  c.trackjobs.controller.JobController - Search request - Keywords: 'null', Location: 'null', Experience Level: 'null', Job Type: 'null', Days Old: 7, Remote Only: false
+2025-03-13 21:44:47.316 [http-nio-8080-exec-4] DEBUG com.trackjobs.service.UserService - Getting user for authenticated username: daniel ivanov
+2025-03-13 21:44:47.317 [http-nio-8080-exec-4] DEBUG com.trackjobs.service.UserService - Found user: ID=1, username=daniel ivanov
+2025-03-13 21:44:47.322 [http-nio-8080-exec-4] INFO  com.trackjobs.service.JobService - Initial search found 26 jobs
+2025-03-13 21:44:47.323 [http-nio-8080-exec-4] INFO  com.trackjobs.service.JobService - After date filter (last 7 days): 26 jobs
+2025-03-13 21:44:47.323 [http-nio-8080-exec-4] INFO  com.trackjobs.service.JobService - Final filtered results: 26 jobs
+2025-03-13 21:48:19.040 [SpringApplicationShutdownHook] INFO  o.s.o.j.LocalContainerEntityManagerFactoryBean - Closing JPA EntityManagerFactory for persistence unit 'default'
+2025-03-13 21:48:19.043 [SpringApplicationShutdownHook] INFO  com.zaxxer.hikari.HikariDataSource - HikariPool-1 - Shutdown initiated...
+2025-03-13 21:48:19.049 [SpringApplicationShutdownHook] INFO  com.zaxxer.hikari.HikariDataSource - HikariPool-1 - Shutdown completed.
+2025-03-13 21:55:39.650 [main] INFO  com.trackjobs.TrackJobsApplication - Starting TrackJobsApplication v1.0.0 using Java 21.0.6 on DanielsPC with PID 745642 (/opt/trackjobs/target/trackjobs-1.0.0.jar started by danie in /opt/trackjobs)
+2025-03-13 21:55:39.651 [main] DEBUG com.trackjobs.TrackJobsApplication - Running with Spring Boot v2.7.16, Spring v5.3.30
+2025-03-13 21:55:39.652 [main] INFO  com.trackjobs.TrackJobsApplication - No active profile set, falling back to 1 default profile: "default"
+2025-03-13 21:55:40.138 [main] INFO  o.s.d.r.c.RepositoryConfigurationDelegate - Bootstrapping Spring Data JPA repositories in DEFAULT mode.
+2025-03-13 21:55:40.176 [main] INFO  o.s.d.r.c.RepositoryConfigurationDelegate - Finished Spring Data repository scanning in 33 ms. Found 3 JPA repository interfaces.
+2025-03-13 21:55:40.534 [main] INFO  o.s.b.w.e.tomcat.TomcatWebServer - Tomcat initialized with port(s): 8080 (http)
+2025-03-13 21:55:40.539 [main] INFO  o.a.coyote.http11.Http11NioProtocol - Initializing ProtocolHandler ["http-nio-8080"]
+2025-03-13 21:55:40.540 [main] INFO  o.a.catalina.core.StandardService - Starting service [Tomcat]
+2025-03-13 21:55:40.540 [main] INFO  o.a.catalina.core.StandardEngine - Starting Servlet engine: [Apache Tomcat/9.0.80]
+2025-03-13 21:55:40.578 [main] INFO  o.a.c.c.C.[Tomcat].[localhost].[/] - Initializing Spring embedded WebApplicationContext
+2025-03-13 21:55:40.579 [main] INFO  o.s.b.w.s.c.ServletWebServerApplicationContext - Root WebApplicationContext: initialization completed in 894 ms
+2025-03-13 21:55:40.789 [main] INFO  o.h.jpa.internal.util.LogHelper - HHH000204: Processing PersistenceUnitInfo [name: default]
+2025-03-13 21:55:40.815 [main] INFO  org.hibernate.Version - HHH000412: Hibernate ORM core version 5.6.15.Final
+2025-03-13 21:55:40.908 [main] INFO  o.h.annotations.common.Version - HCANN000001: Hibernate Commons Annotations {5.1.2.Final}
+2025-03-13 21:55:40.957 [main] INFO  com.zaxxer.hikari.HikariDataSource - HikariPool-1 - Starting...
+2025-03-13 21:55:41.048 [main] INFO  com.zaxxer.hikari.HikariDataSource - HikariPool-1 - Start completed.
+2025-03-13 21:55:41.056 [main] INFO  org.hibernate.dialect.Dialect - HHH000400: Using dialect: org.hibernate.dialect.MySQL8Dialect
+2025-03-13 21:55:41.433 [main] INFO  o.h.e.t.j.p.i.JtaPlatformInitiator - HHH000490: Using JtaPlatform implementation: [org.hibernate.engine.transaction.jta.platform.internal.NoJtaPlatform]
+2025-03-13 21:55:41.437 [main] INFO  o.s.o.j.LocalContainerEntityManagerFactoryBean - Initialized JPA EntityManagerFactory for persistence unit 'default'
+2025-03-13 21:55:41.829 [main] INFO  o.s.b.a.e.web.EndpointLinksResolver - Exposing 1 endpoint(s) beneath base path '/actuator'
+2025-03-13 21:55:41.934 [main] INFO  o.s.s.web.DefaultSecurityFilterChain - Will secure any request with [org.springframework.security.web.session.DisableEncodeUrlFilter@6a9344f5, org.springframework.security.web.context.request.async.WebAsyncManagerIntegrationFilter@5584d9c6, org.springframework.security.web.context.SecurityContextPersistenceFilter@64deb58f, org.springframework.security.web.header.HeaderWriterFilter@4ace284d, org.springframework.security.web.csrf.CsrfFilter@611640f0, org.springframework.security.web.authentication.logout.LogoutFilter@66de00f2, org.springframework.security.web.authentication.UsernamePasswordAuthenticationFilter@5f36c8e3, org.springframework.security.web.savedrequest.RequestCacheAwareFilter@33379242, org.springframework.security.web.servletapi.SecurityContextHolderAwareRequestFilter@2e32fc22, org.springframework.security.web.authentication.AnonymousAuthenticationFilter@3c9c6245, org.springframework.security.web.session.SessionManagementFilter@76d72b5b, org.springframework.security.web.access.ExceptionTranslationFilter@4eb9f2af, org.springframework.security.web.access.intercept.FilterSecurityInterceptor@682af059]
+2025-03-13 21:55:41.964 [main] WARN  o.s.b.a.o.j.JpaBaseConfiguration$JpaWebConfiguration - spring.jpa.open-in-view is enabled by default. Therefore, database queries may be performed during view rendering. Explicitly configure spring.jpa.open-in-view to disable this warning
+2025-03-13 21:55:42.037 [main] INFO  o.s.b.a.w.s.WelcomePageHandlerMapping - Adding welcome page template: index
+2025-03-13 21:55:42.137 [main] INFO  o.a.coyote.http11.Http11NioProtocol - Starting ProtocolHandler ["http-nio-8080"]
+2025-03-13 21:55:42.147 [main] INFO  o.s.b.w.e.tomcat.TomcatWebServer - Tomcat started on port(s): 8080 (http) with context path ''
+2025-03-13 21:55:42.157 [main] INFO  com.trackjobs.TrackJobsApplication - Started TrackJobsApplication in 2.741 seconds (JVM running for 3.072)
+2025-03-13 21:55:51.194 [http-nio-8080-exec-1] INFO  o.a.c.c.C.[Tomcat].[localhost].[/] - Initializing Spring DispatcherServlet 'dispatcherServlet'
+2025-03-13 21:55:51.194 [http-nio-8080-exec-1] INFO  o.s.web.servlet.DispatcherServlet - Initializing Servlet 'dispatcherServlet'
+2025-03-13 21:55:51.195 [http-nio-8080-exec-1] INFO  o.s.web.servlet.DispatcherServlet - Completed initialization in 1 ms
+2025-03-13 21:55:53.174 [http-nio-8080-exec-5] DEBUG com.trackjobs.service.UserService - Getting user for authenticated username: daniel ivanov
+2025-03-13 21:55:53.177 [http-nio-8080-exec-5] DEBUG com.trackjobs.service.UserService - Found user: ID=1, username=daniel ivanov
+2025-03-13 21:55:53.308 [http-nio-8080-exec-8] DEBUG com.trackjobs.service.UserService - Getting user for authenticated username: daniel ivanov
+2025-03-13 21:55:53.310 [http-nio-8080-exec-8] DEBUG com.trackjobs.service.UserService - Found user: ID=1, username=daniel ivanov
+2025-03-13 21:56:16.122 [http-nio-8080-exec-9] DEBUG com.trackjobs.service.UserService - Getting user for authenticated username: daniel ivanov
+2025-03-13 21:56:16.124 [http-nio-8080-exec-9] DEBUG com.trackjobs.service.UserService - Found user: ID=1, username=daniel ivanov
+2025-03-13 21:56:39.703 [http-nio-8080-exec-10] INFO  c.trackjobs.controller.JobController - New scraping request - Keywords: 'Software Engineer', Location: 'Seattle', Pages: 1
+2025-03-13 21:56:39.704 [http-nio-8080-exec-10] INFO  c.trackjobs.controller.JobController - Advanced filters - Title include: [], Title exclude: [Senior,  Principal,  Sr.], Company exclude: [], Description exclude: []
+2025-03-13 21:56:39.705 [http-nio-8080-exec-10] DEBUG com.trackjobs.service.UserService - Getting user for authenticated username: daniel ivanov
+2025-03-13 21:56:39.706 [http-nio-8080-exec-10] DEBUG com.trackjobs.service.UserService - Found user: ID=1, username=daniel ivanov
+2025-03-13 21:56:39.707 [http-nio-8080-exec-10] INFO  com.trackjobs.service.JobService - Scraping jobs for user: daniel ivanov (ID: 1)
+2025-03-13 22:36:23.829 [SpringApplicationShutdownHook] INFO  o.s.o.j.LocalContainerEntityManagerFactoryBean - Closing JPA EntityManagerFactory for persistence unit 'default'
+2025-03-13 22:36:23.831 [SpringApplicationShutdownHook] INFO  com.zaxxer.hikari.HikariDataSource - HikariPool-1 - Shutdown initiated...
+2025-03-13 22:36:23.833 [SpringApplicationShutdownHook] INFO  com.zaxxer.hikari.HikariDataSource - HikariPool-1 - Shutdown completed.
+2025-03-13 22:36:26.621 [main] INFO  com.trackjobs.TrackJobsApplication - Starting TrackJobsApplication v1.0.0 using Java 21.0.6 on DanielsPC with PID 756112 (/opt/trackjobs/target/trackjobs-1.0.0.jar started by danie in /opt/trackjobs)
+2025-03-13 22:36:26.622 [main] DEBUG com.trackjobs.TrackJobsApplication - Running with Spring Boot v2.7.16, Spring v5.3.30
+2025-03-13 22:36:26.622 [main] INFO  com.trackjobs.TrackJobsApplication - No active profile set, falling back to 1 default profile: "default"
+2025-03-13 22:36:27.116 [main] INFO  o.s.d.r.c.RepositoryConfigurationDelegate - Bootstrapping Spring Data JPA repositories in DEFAULT mode.
+2025-03-13 22:36:27.150 [main] INFO  o.s.d.r.c.RepositoryConfigurationDelegate - Finished Spring Data repository scanning in 29 ms. Found 3 JPA repository interfaces.
+2025-03-13 22:36:27.498 [main] INFO  o.s.b.w.e.tomcat.TomcatWebServer - Tomcat initialized with port(s): 8080 (http)
+2025-03-13 22:36:27.502 [main] INFO  o.a.coyote.http11.Http11NioProtocol - Initializing ProtocolHandler ["http-nio-8080"]
+2025-03-13 22:36:27.504 [main] INFO  o.a.catalina.core.StandardService - Starting service [Tomcat]
+2025-03-13 22:36:27.504 [main] INFO  o.a.catalina.core.StandardEngine - Starting Servlet engine: [Apache Tomcat/9.0.80]
+2025-03-13 22:36:27.536 [main] INFO  o.a.c.c.C.[Tomcat].[localhost].[/] - Initializing Spring embedded WebApplicationContext
+2025-03-13 22:36:27.536 [main] INFO  o.s.b.w.s.c.ServletWebServerApplicationContext - Root WebApplicationContext: initialization completed in 881 ms
+2025-03-13 22:36:27.739 [main] INFO  o.h.jpa.internal.util.LogHelper - HHH000204: Processing PersistenceUnitInfo [name: default]
+2025-03-13 22:36:27.780 [main] INFO  org.hibernate.Version - HHH000412: Hibernate ORM core version 5.6.15.Final
+2025-03-13 22:36:27.864 [main] INFO  o.h.annotations.common.Version - HCANN000001: Hibernate Commons Annotations {5.1.2.Final}
+2025-03-13 22:36:27.915 [main] INFO  com.zaxxer.hikari.HikariDataSource - HikariPool-1 - Starting...
+2025-03-13 22:36:27.996 [main] INFO  com.zaxxer.hikari.HikariDataSource - HikariPool-1 - Start completed.
+2025-03-13 22:36:28.003 [main] INFO  org.hibernate.dialect.Dialect - HHH000400: Using dialect: org.hibernate.dialect.MySQL8Dialect
+2025-03-13 22:36:28.372 [main] INFO  o.h.e.t.j.p.i.JtaPlatformInitiator - HHH000490: Using JtaPlatform implementation: [org.hibernate.engine.transaction.jta.platform.internal.NoJtaPlatform]
+2025-03-13 22:36:28.376 [main] INFO  o.s.o.j.LocalContainerEntityManagerFactoryBean - Initialized JPA EntityManagerFactory for persistence unit 'default'
+2025-03-13 22:36:28.766 [main] INFO  o.s.b.a.e.web.EndpointLinksResolver - Exposing 1 endpoint(s) beneath base path '/actuator'
+2025-03-13 22:36:28.875 [main] INFO  o.s.s.web.DefaultSecurityFilterChain - Will secure any request with [org.springframework.security.web.session.DisableEncodeUrlFilter@3ba0ae41, org.springframework.security.web.context.request.async.WebAsyncManagerIntegrationFilter@76fe6cdc, org.springframework.security.web.context.SecurityContextPersistenceFilter@76ececd, org.springframework.security.web.header.HeaderWriterFilter@611640f0, org.springframework.security.web.csrf.CsrfFilter@56dd6efa, org.springframework.security.web.authentication.logout.LogoutFilter@33379242, org.springframework.security.web.authentication.UsernamePasswordAuthenticationFilter@3bb5ceb, org.springframework.security.web.savedrequest.RequestCacheAwareFilter@1682c08c, org.springframework.security.web.servletapi.SecurityContextHolderAwareRequestFilter@3fd05b3e, org.springframework.security.web.authentication.AnonymousAuthenticationFilter@2ffb3aec, org.springframework.security.web.session.SessionManagementFilter@58f4b31a, org.springframework.security.web.access.ExceptionTranslationFilter@4d0e54e0, org.springframework.security.web.access.intercept.FilterSecurityInterceptor@7c663eaf]
+2025-03-13 22:36:28.910 [main] WARN  o.s.b.a.o.j.JpaBaseConfiguration$JpaWebConfiguration - spring.jpa.open-in-view is enabled by default. Therefore, database queries may be performed during view rendering. Explicitly configure spring.jpa.open-in-view to disable this warning
+2025-03-13 22:36:28.999 [main] INFO  o.s.b.a.w.s.WelcomePageHandlerMapping - Adding welcome page template: index
+2025-03-13 22:36:29.102 [main] INFO  o.a.coyote.http11.Http11NioProtocol - Starting ProtocolHandler ["http-nio-8080"]
+2025-03-13 22:36:29.110 [main] INFO  o.s.b.w.e.tomcat.TomcatWebServer - Tomcat started on port(s): 8080 (http) with context path ''
+2025-03-13 22:36:29.120 [main] INFO  com.trackjobs.TrackJobsApplication - Started TrackJobsApplication in 2.73 seconds (JVM running for 3.078)
+2025-03-13 22:36:35.586 [SpringApplicationShutdownHook] INFO  o.s.o.j.LocalContainerEntityManagerFactoryBean - Closing JPA EntityManagerFactory for persistence unit 'default'
+2025-03-13 22:36:35.588 [SpringApplicationShutdownHook] INFO  com.zaxxer.hikari.HikariDataSource - HikariPool-1 - Shutdown initiated...
+2025-03-13 22:36:35.592 [SpringApplicationShutdownHook] INFO  com.zaxxer.hikari.HikariDataSource - HikariPool-1 - Shutdown completed.
+2025-03-13 22:43:47.239 [main] INFO  com.trackjobs.TrackJobsApplication - Starting TrackJobsApplication v1.0.0 using Java 21.0.6 on DanielsPC with PID 758316 (/opt/trackjobs/target/trackjobs-1.0.0.jar started by danie in /opt/trackjobs)
+2025-03-13 22:43:47.239 [main] DEBUG com.trackjobs.TrackJobsApplication - Running with Spring Boot v2.7.16, Spring v5.3.30
+2025-03-13 22:43:47.240 [main] INFO  com.trackjobs.TrackJobsApplication - No active profile set, falling back to 1 default profile: "default"
+2025-03-13 22:43:47.744 [main] INFO  o.s.d.r.c.RepositoryConfigurationDelegate - Bootstrapping Spring Data JPA repositories in DEFAULT mode.
+2025-03-13 22:43:47.781 [main] INFO  o.s.d.r.c.RepositoryConfigurationDelegate - Finished Spring Data repository scanning in 33 ms. Found 3 JPA repository interfaces.
+2025-03-13 22:43:48.132 [main] INFO  o.s.b.w.e.tomcat.TomcatWebServer - Tomcat initialized with port(s): 8080 (http)
+2025-03-13 22:43:48.136 [main] INFO  o.a.coyote.http11.Http11NioProtocol - Initializing ProtocolHandler ["http-nio-8080"]
+2025-03-13 22:43:48.138 [main] INFO  o.a.catalina.core.StandardService - Starting service [Tomcat]
+2025-03-13 22:43:48.138 [main] INFO  o.a.catalina.core.StandardEngine - Starting Servlet engine: [Apache Tomcat/9.0.80]
+2025-03-13 22:43:48.174 [main] INFO  o.a.c.c.C.[Tomcat].[localhost].[/] - Initializing Spring embedded WebApplicationContext
+2025-03-13 22:43:48.175 [main] INFO  o.s.b.w.s.c.ServletWebServerApplicationContext - Root WebApplicationContext: initialization completed in 902 ms
+2025-03-13 22:43:48.381 [main] INFO  o.h.jpa.internal.util.LogHelper - HHH000204: Processing PersistenceUnitInfo [name: default]
+2025-03-13 22:43:48.413 [main] INFO  org.hibernate.Version - HHH000412: Hibernate ORM core version 5.6.15.Final
+2025-03-13 22:43:48.498 [main] INFO  o.h.annotations.common.Version - HCANN000001: Hibernate Commons Annotations {5.1.2.Final}
+2025-03-13 22:43:48.544 [main] INFO  com.zaxxer.hikari.HikariDataSource - HikariPool-1 - Starting...
+2025-03-13 22:43:48.624 [main] INFO  com.zaxxer.hikari.HikariDataSource - HikariPool-1 - Start completed.
+2025-03-13 22:43:48.630 [main] INFO  org.hibernate.dialect.Dialect - HHH000400: Using dialect: org.hibernate.dialect.MySQL8Dialect
+2025-03-13 22:43:48.995 [main] INFO  o.h.e.t.j.p.i.JtaPlatformInitiator - HHH000490: Using JtaPlatform implementation: [org.hibernate.engine.transaction.jta.platform.internal.NoJtaPlatform]
+2025-03-13 22:43:48.999 [main] INFO  o.s.o.j.LocalContainerEntityManagerFactoryBean - Initialized JPA EntityManagerFactory for persistence unit 'default'
+2025-03-13 22:43:49.371 [main] INFO  o.s.b.a.e.web.EndpointLinksResolver - Exposing 1 endpoint(s) beneath base path '/actuator'
+2025-03-13 22:43:49.478 [main] INFO  o.s.s.web.DefaultSecurityFilterChain - Will secure any request with [org.springframework.security.web.session.DisableEncodeUrlFilter@7da34b26, org.springframework.security.web.context.request.async.WebAsyncManagerIntegrationFilter@10c47c79, org.springframework.security.web.context.SecurityContextPersistenceFilter@4d634127, org.springframework.security.web.header.HeaderWriterFilter@4364863, org.springframework.security.web.csrf.CsrfFilter@7b477141, org.springframework.security.web.authentication.logout.LogoutFilter@21a9a705, org.springframework.security.web.authentication.UsernamePasswordAuthenticationFilter@fb49fdf, org.springframework.security.web.savedrequest.RequestCacheAwareFilter@1f1cddf3, org.springframework.security.web.servletapi.SecurityContextHolderAwareRequestFilter@228bda54, org.springframework.security.web.authentication.AnonymousAuthenticationFilter@3b2553d9, org.springframework.security.web.session.SessionManagementFilter@267cde2e, org.springframework.security.web.access.ExceptionTranslationFilter@a83495d, org.springframework.security.web.access.intercept.FilterSecurityInterceptor@adcfad9]
+2025-03-13 22:43:49.510 [main] WARN  o.s.b.a.o.j.JpaBaseConfiguration$JpaWebConfiguration - spring.jpa.open-in-view is enabled by default. Therefore, database queries may be performed during view rendering. Explicitly configure spring.jpa.open-in-view to disable this warning
+2025-03-13 22:43:49.584 [main] INFO  o.s.b.a.w.s.WelcomePageHandlerMapping - Adding welcome page template: index
+2025-03-13 22:43:49.675 [main] INFO  o.a.coyote.http11.Http11NioProtocol - Starting ProtocolHandler ["http-nio-8080"]
+2025-03-13 22:43:49.683 [main] INFO  o.s.b.w.e.tomcat.TomcatWebServer - Tomcat started on port(s): 8080 (http) with context path ''
+2025-03-13 22:43:49.694 [main] INFO  com.trackjobs.TrackJobsApplication - Started TrackJobsApplication in 2.69 seconds (JVM running for 3.005)
+2025-03-13 22:43:56.051 [http-nio-8080-exec-1] INFO  o.a.c.c.C.[Tomcat].[localhost].[/] - Initializing Spring DispatcherServlet 'dispatcherServlet'
+2025-03-13 22:43:56.052 [http-nio-8080-exec-1] INFO  o.s.web.servlet.DispatcherServlet - Initializing Servlet 'dispatcherServlet'
+2025-03-13 22:43:56.053 [http-nio-8080-exec-1] INFO  o.s.web.servlet.DispatcherServlet - Completed initialization in 1 ms
+2025-03-13 22:43:57.854 [http-nio-8080-exec-5] DEBUG com.trackjobs.service.UserService - Getting user for authenticated username: daniel ivanov
+2025-03-13 22:43:57.856 [http-nio-8080-exec-5] DEBUG com.trackjobs.service.UserService - Found user: ID=1, username=daniel ivanov
+2025-03-13 22:43:57.990 [http-nio-8080-exec-8] DEBUG com.trackjobs.service.UserService - Getting user for authenticated username: daniel ivanov
+2025-03-13 22:43:57.993 [http-nio-8080-exec-8] DEBUG com.trackjobs.service.UserService - Found user: ID=1, username=daniel ivanov
+2025-03-13 22:44:30.433 [http-nio-8080-exec-1] DEBUG com.trackjobs.service.UserService - Getting user for authenticated username: daniel ivanov
+2025-03-13 22:44:30.434 [http-nio-8080-exec-1] DEBUG com.trackjobs.service.UserService - Found user: ID=1, username=daniel ivanov
+2025-03-13 22:44:57.919 [http-nio-8080-exec-2] INFO  c.trackjobs.controller.JobController - New scraping request - Keywords: 'Java Engineer', Location: 'Seattle', Pages: 1
+2025-03-13 22:44:57.919 [http-nio-8080-exec-2] INFO  c.trackjobs.controller.JobController - Advanced filters - Title include: [], Title exclude: [Senior,  Principal], Company exclude: [], Description exclude: []
+2025-03-13 22:44:57.921 [http-nio-8080-exec-2] DEBUG com.trackjobs.service.UserService - Getting user for authenticated username: daniel ivanov
+2025-03-13 22:44:57.922 [http-nio-8080-exec-2] DEBUG com.trackjobs.service.UserService - Found user: ID=1, username=daniel ivanov
+2025-03-13 22:44:57.923 [http-nio-8080-exec-2] INFO  com.trackjobs.service.JobService - Scraping jobs for user: daniel ivanov (ID: 1)
+2025-03-13 22:46:08.140 [http-nio-8080-exec-9] INFO  c.trackjobs.controller.JobController - Search request - Keywords: 'null', Location: 'null', Experience Level: 'null', Job Type: 'null', Days Old: 7, Remote Only: false
+2025-03-13 22:46:08.141 [http-nio-8080-exec-9] DEBUG com.trackjobs.service.UserService - Getting user for authenticated username: daniel ivanov
+2025-03-13 22:46:08.143 [http-nio-8080-exec-9] DEBUG com.trackjobs.service.UserService - Found user: ID=1, username=daniel ivanov
+2025-03-13 22:46:08.147 [http-nio-8080-exec-9] INFO  com.trackjobs.service.JobService - Initial search found 33 jobs
+2025-03-13 22:46:08.147 [http-nio-8080-exec-9] INFO  com.trackjobs.service.JobService - After date filter (last 7 days): 33 jobs
+2025-03-13 22:46:08.148 [http-nio-8080-exec-9] INFO  com.trackjobs.service.JobService - Final filtered results: 33 jobs
+2025-03-13 22:48:24.684 [http-nio-8080-exec-4] INFO  c.trackjobs.controller.JobController - New scraping request - Keywords: 'Java Engineer', Location: 'Seattle', Pages: 1
+2025-03-13 22:48:24.684 [http-nio-8080-exec-4] INFO  c.trackjobs.controller.JobController - Advanced filters - Title include: [], Title exclude: [Senior,  Principal], Company exclude: [], Description exclude: []
+2025-03-13 22:48:24.685 [http-nio-8080-exec-4] DEBUG com.trackjobs.service.UserService - Getting user for authenticated username: daniel ivanov
+2025-03-13 22:48:24.687 [http-nio-8080-exec-4] DEBUG com.trackjobs.service.UserService - Found user: ID=1, username=daniel ivanov
+2025-03-13 22:48:24.687 [http-nio-8080-exec-4] INFO  com.trackjobs.service.JobService - Scraping jobs for user: daniel ivanov (ID: 1)
+2025-03-13 22:49:23.577 [http-nio-8080-exec-5] INFO  c.trackjobs.controller.JobController - Search request - Keywords: 'null', Location: 'null', Experience Level: 'null', Job Type: 'null', Days Old: 7, Remote Only: false
+2025-03-13 22:49:23.578 [http-nio-8080-exec-5] DEBUG com.trackjobs.service.UserService - Getting user for authenticated username: daniel ivanov
+2025-03-13 22:49:23.580 [http-nio-8080-exec-5] DEBUG com.trackjobs.service.UserService - Found user: ID=1, username=daniel ivanov
+2025-03-13 22:49:23.582 [http-nio-8080-exec-5] INFO  com.trackjobs.service.JobService - Initial search found 33 jobs
+2025-03-13 22:49:23.582 [http-nio-8080-exec-5] INFO  com.trackjobs.service.JobService - After date filter (last 7 days): 33 jobs
+2025-03-13 22:49:23.582 [http-nio-8080-exec-5] INFO  com.trackjobs.service.JobService - Final filtered results: 33 jobs
+2025-03-13 22:49:46.891 [http-nio-8080-exec-9] INFO  c.trackjobs.controller.JobController - Search request - Keywords: 'piper', Location: 'null', Experience Level: 'null', Job Type: 'null', Days Old: 7, Remote Only: false
+2025-03-13 22:49:46.892 [http-nio-8080-exec-9] DEBUG com.trackjobs.service.UserService - Getting user for authenticated username: daniel ivanov
+2025-03-13 22:49:46.893 [http-nio-8080-exec-9] DEBUG com.trackjobs.service.UserService - Found user: ID=1, username=daniel ivanov
+2025-03-13 22:49:46.895 [http-nio-8080-exec-9] INFO  com.trackjobs.service.JobService - Initial search found 4 jobs
+2025-03-13 22:49:46.895 [http-nio-8080-exec-9] INFO  com.trackjobs.service.JobService - After date filter (last 7 days): 4 jobs
+2025-03-13 22:49:46.896 [http-nio-8080-exec-9] INFO  com.trackjobs.service.JobService - Final filtered results: 4 jobs
+2025-03-13 22:50:56.951 [SpringApplicationShutdownHook] INFO  o.s.o.j.LocalContainerEntityManagerFactoryBean - Closing JPA EntityManagerFactory for persistence unit 'default'
+2025-03-13 22:50:56.953 [SpringApplicationShutdownHook] INFO  com.zaxxer.hikari.HikariDataSource - HikariPool-1 - Shutdown initiated...
+2025-03-13 22:50:56.957 [SpringApplicationShutdownHook] INFO  com.zaxxer.hikari.HikariDataSource - HikariPool-1 - Shutdown completed.
+2025-03-13 22:51:08.091 [main] INFO  com.trackjobs.TrackJobsApplication - Starting TrackJobsApplication v1.0.0 using Java 21.0.6 on DanielsPC with PID 760264 (/opt/trackjobs/target/trackjobs-1.0.0.jar started by danie in /opt/trackjobs)
+2025-03-13 22:51:08.092 [main] DEBUG com.trackjobs.TrackJobsApplication - Running with Spring Boot v2.7.16, Spring v5.3.30
+2025-03-13 22:51:08.094 [main] INFO  com.trackjobs.TrackJobsApplication - No active profile set, falling back to 1 default profile: "default"
+2025-03-13 22:51:08.580 [main] INFO  o.s.d.r.c.RepositoryConfigurationDelegate - Bootstrapping Spring Data JPA repositories in DEFAULT mode.
+2025-03-13 22:51:08.620 [main] INFO  o.s.d.r.c.RepositoryConfigurationDelegate - Finished Spring Data repository scanning in 35 ms. Found 3 JPA repository interfaces.
+2025-03-13 22:51:08.978 [main] INFO  o.s.b.w.e.tomcat.TomcatWebServer - Tomcat initialized with port(s): 8080 (http)
+2025-03-13 22:51:08.982 [main] INFO  o.a.coyote.http11.Http11NioProtocol - Initializing ProtocolHandler ["http-nio-8080"]
+2025-03-13 22:51:08.984 [main] INFO  o.a.catalina.core.StandardService - Starting service [Tomcat]
+2025-03-13 22:51:08.984 [main] INFO  o.a.catalina.core.StandardEngine - Starting Servlet engine: [Apache Tomcat/9.0.80]
+2025-03-13 22:51:09.019 [main] INFO  o.a.c.c.C.[Tomcat].[localhost].[/] - Initializing Spring embedded WebApplicationContext
+2025-03-13 22:51:09.019 [main] INFO  o.s.b.w.s.c.ServletWebServerApplicationContext - Root WebApplicationContext: initialization completed in 893 ms
+2025-03-13 22:51:09.234 [main] INFO  o.h.jpa.internal.util.LogHelper - HHH000204: Processing PersistenceUnitInfo [name: default]
+2025-03-13 22:51:09.268 [main] INFO  org.hibernate.Version - HHH000412: Hibernate ORM core version 5.6.15.Final
+2025-03-13 22:51:09.349 [main] INFO  o.h.annotations.common.Version - HCANN000001: Hibernate Commons Annotations {5.1.2.Final}
+2025-03-13 22:51:09.398 [main] INFO  com.zaxxer.hikari.HikariDataSource - HikariPool-1 - Starting...
+2025-03-13 22:51:09.479 [main] INFO  com.zaxxer.hikari.HikariDataSource - HikariPool-1 - Start completed.
+2025-03-13 22:51:09.486 [main] INFO  org.hibernate.dialect.Dialect - HHH000400: Using dialect: org.hibernate.dialect.MySQL8Dialect
+2025-03-13 22:51:09.843 [main] INFO  o.h.e.t.j.p.i.JtaPlatformInitiator - HHH000490: Using JtaPlatform implementation: [org.hibernate.engine.transaction.jta.platform.internal.NoJtaPlatform]
+2025-03-13 22:51:09.847 [main] INFO  o.s.o.j.LocalContainerEntityManagerFactoryBean - Initialized JPA EntityManagerFactory for persistence unit 'default'
+2025-03-13 22:51:10.268 [main] INFO  o.s.b.a.e.web.EndpointLinksResolver - Exposing 1 endpoint(s) beneath base path '/actuator'
+2025-03-13 22:51:10.380 [main] INFO  o.s.s.web.DefaultSecurityFilterChain - Will secure any request with [org.springframework.security.web.session.DisableEncodeUrlFilter@7da34b26, org.springframework.security.web.context.request.async.WebAsyncManagerIntegrationFilter@10c47c79, org.springframework.security.web.context.SecurityContextPersistenceFilter@4d634127, org.springframework.security.web.header.HeaderWriterFilter@4364863, org.springframework.security.web.csrf.CsrfFilter@7b477141, org.springframework.security.web.authentication.logout.LogoutFilter@21a9a705, org.springframework.security.web.authentication.UsernamePasswordAuthenticationFilter@fb49fdf, org.springframework.security.web.savedrequest.RequestCacheAwareFilter@1f1cddf3, org.springframework.security.web.servletapi.SecurityContextHolderAwareRequestFilter@228bda54, org.springframework.security.web.authentication.AnonymousAuthenticationFilter@3b2553d9, org.springframework.security.web.session.SessionManagementFilter@267cde2e, org.springframework.security.web.access.ExceptionTranslationFilter@a83495d, org.springframework.security.web.access.intercept.FilterSecurityInterceptor@adcfad9]
+2025-03-13 22:51:10.413 [main] WARN  o.s.b.a.o.j.JpaBaseConfiguration$JpaWebConfiguration - spring.jpa.open-in-view is enabled by default. Therefore, database queries may be performed during view rendering. Explicitly configure spring.jpa.open-in-view to disable this warning
+2025-03-13 22:51:10.491 [main] INFO  o.s.b.a.w.s.WelcomePageHandlerMapping - Adding welcome page template: index
+2025-03-13 22:51:10.607 [main] INFO  o.a.coyote.http11.Http11NioProtocol - Starting ProtocolHandler ["http-nio-8080"]
+2025-03-13 22:51:10.616 [main] INFO  o.s.b.w.e.tomcat.TomcatWebServer - Tomcat started on port(s): 8080 (http) with context path ''
+2025-03-13 22:51:10.627 [main] INFO  com.trackjobs.TrackJobsApplication - Started TrackJobsApplication in 2.77 seconds (JVM running for 3.107)
+2025-03-13 22:51:11.843 [http-nio-8080-exec-1] INFO  o.a.c.c.C.[Tomcat].[localhost].[/] - Initializing Spring DispatcherServlet 'dispatcherServlet'
+2025-03-13 22:51:11.843 [http-nio-8080-exec-1] INFO  o.s.web.servlet.DispatcherServlet - Initializing Servlet 'dispatcherServlet'
+2025-03-13 22:51:11.844 [http-nio-8080-exec-1] INFO  o.s.web.servlet.DispatcherServlet - Completed initialization in 1 ms
+2025-03-13 22:51:13.630 [http-nio-8080-exec-5] DEBUG com.trackjobs.service.UserService - Getting user for authenticated username: daniel ivanov
+2025-03-13 22:51:13.632 [http-nio-8080-exec-5] DEBUG com.trackjobs.service.UserService - Found user: ID=1, username=daniel ivanov
+2025-03-13 22:51:13.782 [http-nio-8080-exec-8] DEBUG com.trackjobs.service.UserService - Getting user for authenticated username: daniel ivanov
+2025-03-13 22:51:13.785 [http-nio-8080-exec-8] DEBUG com.trackjobs.service.UserService - Found user: ID=1, username=daniel ivanov
+2025-03-13 22:51:19.449 [http-nio-8080-exec-9] INFO  c.trackjobs.controller.JobController - Search request - Keywords: 'tik-tok', Location: 'null', Experience Level: 'null', Job Type: 'null', Days Old: 7, Remote Only: false
+2025-03-13 22:51:19.450 [http-nio-8080-exec-9] DEBUG com.trackjobs.service.UserService - Getting user for authenticated username: daniel ivanov
+2025-03-13 22:51:19.452 [http-nio-8080-exec-9] DEBUG com.trackjobs.service.UserService - Found user: ID=1, username=daniel ivanov
+2025-03-13 22:51:19.457 [http-nio-8080-exec-9] INFO  com.trackjobs.service.JobService - Initial search found 0 jobs
+2025-03-13 22:51:19.458 [http-nio-8080-exec-9] INFO  com.trackjobs.service.JobService - After date filter (last 7 days): 0 jobs
+2025-03-13 22:51:19.458 [http-nio-8080-exec-9] INFO  com.trackjobs.service.JobService - Final filtered results: 0 jobs
+2025-03-13 22:51:40.915 [http-nio-8080-exec-10] INFO  c.trackjobs.controller.JobController - Search request - Keywords: 'java', Location: 'null', Experience Level: 'null', Job Type: 'null', Days Old: 7, Remote Only: false
+2025-03-13 22:51:40.917 [http-nio-8080-exec-10] DEBUG com.trackjobs.service.UserService - Getting user for authenticated username: daniel ivanov
+2025-03-13 22:51:40.918 [http-nio-8080-exec-10] DEBUG com.trackjobs.service.UserService - Found user: ID=1, username=daniel ivanov
+2025-03-13 22:51:40.920 [http-nio-8080-exec-10] INFO  com.trackjobs.service.JobService - Initial search found 2 jobs
+2025-03-13 22:51:40.920 [http-nio-8080-exec-10] INFO  com.trackjobs.service.JobService - After date filter (last 7 days): 2 jobs
+2025-03-13 22:51:40.921 [http-nio-8080-exec-10] INFO  com.trackjobs.service.JobService - Final filtered results: 2 jobs
+2025-03-13 22:52:59.427 [http-nio-8080-exec-2] INFO  c.trackjobs.controller.JobController - New scraping request - Keywords: 'Jr Data Analyst', Location: 'Seattle', Pages: 1
+2025-03-13 22:52:59.428 [http-nio-8080-exec-2] INFO  c.trackjobs.controller.JobController - Advanced filters - Title include: [], Title exclude: [], Company exclude: [], Description exclude: []
+2025-03-13 22:52:59.429 [http-nio-8080-exec-2] DEBUG com.trackjobs.service.UserService - Getting user for authenticated username: daniel ivanov
+2025-03-13 22:52:59.431 [http-nio-8080-exec-2] DEBUG com.trackjobs.service.UserService - Found user: ID=1, username=daniel ivanov
+2025-03-13 22:52:59.431 [http-nio-8080-exec-2] INFO  com.trackjobs.service.JobService - Scraping jobs for user: daniel ivanov (ID: 1)
+2025-03-13 22:55:33.207 [SpringApplicationShutdownHook] INFO  o.s.o.j.LocalContainerEntityManagerFactoryBean - Closing JPA EntityManagerFactory for persistence unit 'default'
+2025-03-13 22:55:33.210 [SpringApplicationShutdownHook] INFO  com.zaxxer.hikari.HikariDataSource - HikariPool-1 - Shutdown initiated...
+2025-03-13 22:55:33.217 [SpringApplicationShutdownHook] INFO  com.zaxxer.hikari.HikariDataSource - HikariPool-1 - Shutdown completed.
+2025-03-13 22:55:36.875 [main] INFO  com.trackjobs.TrackJobsApplication - Starting TrackJobsApplication v1.0.0 using Java 21.0.6 on DanielsPC with PID 761485 (/opt/trackjobs/target/trackjobs-1.0.0.jar started by danie in /opt/trackjobs)
+2025-03-13 22:55:36.877 [main] DEBUG com.trackjobs.TrackJobsApplication - Running with Spring Boot v2.7.16, Spring v5.3.30
+2025-03-13 22:55:36.878 [main] INFO  com.trackjobs.TrackJobsApplication - No active profile set, falling back to 1 default profile: "default"
+2025-03-13 22:55:37.478 [main] INFO  o.s.d.r.c.RepositoryConfigurationDelegate - Bootstrapping Spring Data JPA repositories in DEFAULT mode.
+2025-03-13 22:55:37.525 [main] INFO  o.s.d.r.c.RepositoryConfigurationDelegate - Finished Spring Data repository scanning in 39 ms. Found 3 JPA repository interfaces.
+2025-03-13 22:55:37.929 [main] INFO  o.s.b.w.e.tomcat.TomcatWebServer - Tomcat initialized with port(s): 8080 (http)
+2025-03-13 22:55:37.935 [main] INFO  o.a.coyote.http11.Http11NioProtocol - Initializing ProtocolHandler ["http-nio-8080"]
+2025-03-13 22:55:37.937 [main] INFO  o.a.catalina.core.StandardService - Starting service [Tomcat]
+2025-03-13 22:55:37.937 [main] INFO  o.a.catalina.core.StandardEngine - Starting Servlet engine: [Apache Tomcat/9.0.80]
+2025-03-13 22:55:37.983 [main] INFO  o.a.c.c.C.[Tomcat].[localhost].[/] - Initializing Spring embedded WebApplicationContext
+2025-03-13 22:55:37.983 [main] INFO  o.s.b.w.s.c.ServletWebServerApplicationContext - Root WebApplicationContext: initialization completed in 1068 ms
+2025-03-13 22:55:38.222 [main] INFO  o.h.jpa.internal.util.LogHelper - HHH000204: Processing PersistenceUnitInfo [name: default]
+2025-03-13 22:55:38.275 [main] INFO  org.hibernate.Version - HHH000412: Hibernate ORM core version 5.6.15.Final
+2025-03-13 22:55:38.411 [main] INFO  o.h.annotations.common.Version - HCANN000001: Hibernate Commons Annotations {5.1.2.Final}
+2025-03-13 22:55:38.478 [main] INFO  com.zaxxer.hikari.HikariDataSource - HikariPool-1 - Starting...
+2025-03-13 22:55:38.579 [main] INFO  com.zaxxer.hikari.HikariDataSource - HikariPool-1 - Start completed.
+2025-03-13 22:55:38.590 [main] INFO  org.hibernate.dialect.Dialect - HHH000400: Using dialect: org.hibernate.dialect.MySQL8Dialect
+2025-03-13 22:55:39.062 [main] INFO  o.h.e.t.j.p.i.JtaPlatformInitiator - HHH000490: Using JtaPlatform implementation: [org.hibernate.engine.transaction.jta.platform.internal.NoJtaPlatform]
+2025-03-13 22:55:39.068 [main] INFO  o.s.o.j.LocalContainerEntityManagerFactoryBean - Initialized JPA EntityManagerFactory for persistence unit 'default'
+2025-03-13 22:55:39.522 [main] INFO  o.s.b.a.e.web.EndpointLinksResolver - Exposing 1 endpoint(s) beneath base path '/actuator'
+2025-03-13 22:55:39.658 [main] INFO  o.s.s.web.DefaultSecurityFilterChain - Will secure any request with [org.springframework.security.web.session.DisableEncodeUrlFilter@7da34b26, org.springframework.security.web.context.request.async.WebAsyncManagerIntegrationFilter@10c47c79, org.springframework.security.web.context.SecurityContextPersistenceFilter@4d634127, org.springframework.security.web.header.HeaderWriterFilter@4364863, org.springframework.security.web.csrf.CsrfFilter@7b477141, org.springframework.security.web.authentication.logout.LogoutFilter@21a9a705, org.springframework.security.web.authentication.UsernamePasswordAuthenticationFilter@fb49fdf, org.springframework.security.web.savedrequest.RequestCacheAwareFilter@1f1cddf3, org.springframework.security.web.servletapi.SecurityContextHolderAwareRequestFilter@228bda54, org.springframework.security.web.authentication.AnonymousAuthenticationFilter@3b2553d9, org.springframework.security.web.session.SessionManagementFilter@267cde2e, org.springframework.security.web.access.ExceptionTranslationFilter@a83495d, org.springframework.security.web.access.intercept.FilterSecurityInterceptor@adcfad9]
+2025-03-13 22:55:39.690 [main] WARN  o.s.b.a.o.j.JpaBaseConfiguration$JpaWebConfiguration - spring.jpa.open-in-view is enabled by default. Therefore, database queries may be performed during view rendering. Explicitly configure spring.jpa.open-in-view to disable this warning
+2025-03-13 22:55:39.776 [main] INFO  o.s.b.a.w.s.WelcomePageHandlerMapping - Adding welcome page template: index
+2025-03-13 22:55:39.897 [main] INFO  o.a.coyote.http11.Http11NioProtocol - Starting ProtocolHandler ["http-nio-8080"]
+2025-03-13 22:55:39.907 [main] INFO  o.s.b.w.e.tomcat.TomcatWebServer - Tomcat started on port(s): 8080 (http) with context path ''
+2025-03-13 22:55:39.917 [main] INFO  com.trackjobs.TrackJobsApplication - Started TrackJobsApplication in 3.314 seconds (JVM running for 3.738)
+2025-03-13 22:55:42.683 [http-nio-8080-exec-1] INFO  o.a.c.c.C.[Tomcat].[localhost].[/] - Initializing Spring DispatcherServlet 'dispatcherServlet'
+2025-03-13 22:55:42.683 [http-nio-8080-exec-1] INFO  o.s.web.servlet.DispatcherServlet - Initializing Servlet 'dispatcherServlet'
+2025-03-13 22:55:42.684 [http-nio-8080-exec-1] INFO  o.s.web.servlet.DispatcherServlet - Completed initialization in 1 ms
+2025-03-13 22:55:44.339 [http-nio-8080-exec-5] DEBUG com.trackjobs.service.UserService - Getting user for authenticated username: daniel ivanov
+2025-03-13 22:55:44.341 [http-nio-8080-exec-5] DEBUG com.trackjobs.service.UserService - Found user: ID=1, username=daniel ivanov
+2025-03-13 22:55:44.509 [http-nio-8080-exec-8] DEBUG com.trackjobs.service.UserService - Getting user for authenticated username: daniel ivanov
+2025-03-13 22:55:44.513 [http-nio-8080-exec-8] DEBUG com.trackjobs.service.UserService - Found user: ID=1, username=daniel ivanov
+2025-03-13 22:57:20.358 [SpringApplicationShutdownHook] INFO  o.s.o.j.LocalContainerEntityManagerFactoryBean - Closing JPA EntityManagerFactory for persistence unit 'default'
+2025-03-13 22:57:20.361 [SpringApplicationShutdownHook] INFO  com.zaxxer.hikari.HikariDataSource - HikariPool-1 - Shutdown initiated...
+2025-03-13 22:57:20.369 [SpringApplicationShutdownHook] INFO  com.zaxxer.hikari.HikariDataSource - HikariPool-1 - Shutdown completed.
+2025-03-13 22:59:22.837 [main] INFO  com.trackjobs.TrackJobsApplication - Starting TrackJobsApplication v1.0.0 using Java 21.0.6 on DanielsPC with PID 762592 (/opt/trackjobs/target/trackjobs-1.0.0.jar started by danie in /opt/trackjobs)
+2025-03-13 22:59:22.839 [main] DEBUG com.trackjobs.TrackJobsApplication - Running with Spring Boot v2.7.16, Spring v5.3.30
+2025-03-13 22:59:22.839 [main] INFO  com.trackjobs.TrackJobsApplication - No active profile set, falling back to 1 default profile: "default"
+2025-03-13 22:59:23.352 [main] INFO  o.s.d.r.c.RepositoryConfigurationDelegate - Bootstrapping Spring Data JPA repositories in DEFAULT mode.
+2025-03-13 22:59:23.393 [main] INFO  o.s.d.r.c.RepositoryConfigurationDelegate - Finished Spring Data repository scanning in 35 ms. Found 3 JPA repository interfaces.
+2025-03-13 22:59:23.802 [main] INFO  o.s.b.w.e.tomcat.TomcatWebServer - Tomcat initialized with port(s): 8080 (http)
+2025-03-13 22:59:23.808 [main] INFO  o.a.coyote.http11.Http11NioProtocol - Initializing ProtocolHandler ["http-nio-8080"]
+2025-03-13 22:59:23.810 [main] INFO  o.a.catalina.core.StandardService - Starting service [Tomcat]
+2025-03-13 22:59:23.810 [main] INFO  o.a.catalina.core.StandardEngine - Starting Servlet engine: [Apache Tomcat/9.0.80]
+2025-03-13 22:59:23.855 [main] INFO  o.a.c.c.C.[Tomcat].[localhost].[/] - Initializing Spring embedded WebApplicationContext
+2025-03-13 22:59:23.855 [main] INFO  o.s.b.w.s.c.ServletWebServerApplicationContext - Root WebApplicationContext: initialization completed in 986 ms
+2025-03-13 22:59:24.098 [main] INFO  o.h.jpa.internal.util.LogHelper - HHH000204: Processing PersistenceUnitInfo [name: default]
+2025-03-13 22:59:24.142 [main] INFO  org.hibernate.Version - HHH000412: Hibernate ORM core version 5.6.15.Final
+2025-03-13 22:59:24.241 [main] INFO  o.h.annotations.common.Version - HCANN000001: Hibernate Commons Annotations {5.1.2.Final}
+2025-03-13 22:59:24.297 [main] INFO  com.zaxxer.hikari.HikariDataSource - HikariPool-1 - Starting...
+2025-03-13 22:59:24.384 [main] INFO  com.zaxxer.hikari.HikariDataSource - HikariPool-1 - Start completed.
+2025-03-13 22:59:24.392 [main] INFO  org.hibernate.dialect.Dialect - HHH000400: Using dialect: org.hibernate.dialect.MySQL8Dialect
+2025-03-13 22:59:24.759 [main] INFO  o.h.e.t.j.p.i.JtaPlatformInitiator - HHH000490: Using JtaPlatform implementation: [org.hibernate.engine.transaction.jta.platform.internal.NoJtaPlatform]
+2025-03-13 22:59:24.764 [main] INFO  o.s.o.j.LocalContainerEntityManagerFactoryBean - Initialized JPA EntityManagerFactory for persistence unit 'default'
+2025-03-13 22:59:25.160 [main] INFO  o.s.b.a.e.web.EndpointLinksResolver - Exposing 1 endpoint(s) beneath base path '/actuator'
+2025-03-13 22:59:25.280 [main] INFO  o.s.s.web.DefaultSecurityFilterChain - Will secure any request with [org.springframework.security.web.session.DisableEncodeUrlFilter@786ff1cb, org.springframework.security.web.context.request.async.WebAsyncManagerIntegrationFilter@46039a21, org.springframework.security.web.context.SecurityContextPersistenceFilter@3fd05b3e, org.springframework.security.web.header.HeaderWriterFilter@21a9a705, org.springframework.security.web.csrf.CsrfFilter@1f1cddf3, org.springframework.security.web.authentication.logout.LogoutFilter@72bdd7c7, org.springframework.security.web.authentication.UsernamePasswordAuthenticationFilter@76fe6cdc, org.springframework.security.web.savedrequest.RequestCacheAwareFilter@4a481728, org.springframework.security.web.servletapi.SecurityContextHolderAwareRequestFilter@4ace284d, org.springframework.security.web.authentication.AnonymousAuthenticationFilter@431e86b1, org.springframework.security.web.session.SessionManagementFilter@76ececd, org.springframework.security.web.access.ExceptionTranslationFilter@67e25252, org.springframework.security.web.access.intercept.FilterSecurityInterceptor@3ba0ae41]
+2025-03-13 22:59:25.308 [main] WARN  o.s.b.a.o.j.JpaBaseConfiguration$JpaWebConfiguration - spring.jpa.open-in-view is enabled by default. Therefore, database queries may be performed during view rendering. Explicitly configure spring.jpa.open-in-view to disable this warning
+2025-03-13 22:59:25.385 [main] INFO  o.s.b.a.w.s.WelcomePageHandlerMapping - Adding welcome page template: index
+2025-03-13 22:59:25.486 [main] INFO  o.a.coyote.http11.Http11NioProtocol - Starting ProtocolHandler ["http-nio-8080"]
+2025-03-13 22:59:25.495 [main] INFO  o.s.b.w.e.tomcat.TomcatWebServer - Tomcat started on port(s): 8080 (http) with context path ''
+2025-03-13 22:59:25.506 [main] INFO  com.trackjobs.TrackJobsApplication - Started TrackJobsApplication in 2.905 seconds (JVM running for 3.225)
+2025-03-13 22:59:26.623 [http-nio-8080-exec-1] INFO  o.a.c.c.C.[Tomcat].[localhost].[/] - Initializing Spring DispatcherServlet 'dispatcherServlet'
+2025-03-13 22:59:26.623 [http-nio-8080-exec-1] INFO  o.s.web.servlet.DispatcherServlet - Initializing Servlet 'dispatcherServlet'
+2025-03-13 22:59:26.624 [http-nio-8080-exec-1] INFO  o.s.web.servlet.DispatcherServlet - Completed initialization in 1 ms
+2025-03-13 22:59:28.454 [http-nio-8080-exec-5] DEBUG com.trackjobs.service.UserService - Getting user for authenticated username: daniel ivanov
+2025-03-13 22:59:28.455 [http-nio-8080-exec-5] DEBUG com.trackjobs.service.UserService - Found user: ID=1, username=daniel ivanov
+2025-03-13 22:59:28.613 [http-nio-8080-exec-8] DEBUG com.trackjobs.service.UserService - Getting user for authenticated username: daniel ivanov
+2025-03-13 22:59:28.617 [http-nio-8080-exec-8] DEBUG com.trackjobs.service.UserService - Found user: ID=1, username=daniel ivanov
+2025-03-13 22:59:35.282 [http-nio-8080-exec-9] DEBUG com.trackjobs.service.UserService - Getting user for authenticated username: daniel ivanov
+2025-03-13 22:59:35.284 [http-nio-8080-exec-9] DEBUG com.trackjobs.service.UserService - Found user: ID=1, username=daniel ivanov
+2025-03-13 22:59:35.284 [http-nio-8080-exec-9] WARN  com.trackjobs.service.UserService - Wiping all data for user: daniel ivanov (ID: 1)
+2025-03-13 22:59:35.288 [http-nio-8080-exec-9] INFO  com.trackjobs.service.UserService - Deleted all scraper configurations for user: daniel ivanov
+2025-03-13 22:59:35.296 [http-nio-8080-exec-9] INFO  com.trackjobs.service.UserService - Deleted all jobs for user: daniel ivanov
+2025-03-13 22:59:35.297 [http-nio-8080-exec-9] WARN  com.trackjobs.service.UserService - User data wipe completed for: daniel ivanov
+2025-03-13 22:59:35.363 [http-nio-8080-exec-10] DEBUG com.trackjobs.service.UserService - Getting user for authenticated username: daniel ivanov
+2025-03-13 22:59:35.365 [http-nio-8080-exec-10] DEBUG com.trackjobs.service.UserService - Found user: ID=1, username=daniel ivanov
+2025-03-13 22:59:35.431 [http-nio-8080-exec-3] DEBUG com.trackjobs.service.UserService - Getting user for authenticated username: daniel ivanov
+2025-03-13 22:59:35.433 [http-nio-8080-exec-3] DEBUG com.trackjobs.service.UserService - Found user: ID=1, username=daniel ivanov
+2025-03-13 22:59:54.027 [http-nio-8080-exec-4] INFO  c.trackjobs.controller.JobController - New scraping request - Keywords: 'Java Engineer', Location: 'Seattle', Pages: 1
+2025-03-13 22:59:54.027 [http-nio-8080-exec-4] INFO  c.trackjobs.controller.JobController - Advanced filters - Title include: [], Title exclude: [], Company exclude: [], Description exclude: []
+2025-03-13 22:59:54.028 [http-nio-8080-exec-4] DEBUG com.trackjobs.service.UserService - Getting user for authenticated username: daniel ivanov
+2025-03-13 22:59:54.030 [http-nio-8080-exec-4] DEBUG com.trackjobs.service.UserService - Found user: ID=1, username=daniel ivanov
+2025-03-13 22:59:54.030 [http-nio-8080-exec-4] INFO  com.trackjobs.service.JobService - Scraping jobs for user: daniel ivanov (ID: 1)
+2025-03-13 23:00:33.703 [http-nio-8080-exec-1] DEBUG com.trackjobs.service.UserService - Getting user for authenticated username: daniel ivanov
+2025-03-13 23:00:33.705 [http-nio-8080-exec-1] DEBUG com.trackjobs.service.UserService - Found user: ID=1, username=daniel ivanov
+2025-03-13 23:00:33.794 [http-nio-8080-exec-4] DEBUG com.trackjobs.service.UserService - Getting user for authenticated username: daniel ivanov
+2025-03-13 23:00:33.796 [http-nio-8080-exec-4] DEBUG com.trackjobs.service.UserService - Found user: ID=1, username=daniel ivanov
+2025-03-13 23:01:18.685 [http-nio-8080-exec-5] DEBUG com.trackjobs.service.UserService - Getting user for authenticated username: daniel ivanov
+2025-03-13 23:01:18.687 [http-nio-8080-exec-5] DEBUG com.trackjobs.service.UserService - Found user: ID=1, username=daniel ivanov
+2025-03-13 23:01:18.725 [http-nio-8080-exec-6] DEBUG com.trackjobs.service.UserService - Getting user for authenticated username: daniel ivanov
+2025-03-13 23:01:18.727 [http-nio-8080-exec-6] DEBUG com.trackjobs.service.UserService - Found user: ID=1, username=daniel ivanov
+2025-03-13 23:01:22.925 [http-nio-8080-exec-7] INFO  c.trackjobs.controller.JobController - New scraping request - Keywords: 'Software Engineer', Location: 'Seattle', Pages: 1
+2025-03-13 23:01:22.925 [http-nio-8080-exec-7] INFO  c.trackjobs.controller.JobController - Advanced filters - Title include: [], Title exclude: [], Company exclude: [], Description exclude: []
+2025-03-13 23:01:22.926 [http-nio-8080-exec-7] DEBUG com.trackjobs.service.UserService - Getting user for authenticated username: daniel ivanov
+2025-03-13 23:01:22.927 [http-nio-8080-exec-7] DEBUG com.trackjobs.service.UserService - Found user: ID=1, username=daniel ivanov
+2025-03-13 23:01:22.928 [http-nio-8080-exec-7] INFO  com.trackjobs.service.JobService - Scraping jobs for user: daniel ivanov (ID: 1)
+2025-03-13 23:04:07.332 [http-nio-8080-exec-9] INFO  c.trackjobs.controller.JobController - New scraping request - Keywords: 'Software Engineer', Location: 'Seattle', Pages: 1
+2025-03-13 23:04:07.333 [http-nio-8080-exec-9] INFO  c.trackjobs.controller.JobController - Advanced filters - Title include: [], Title exclude: [], Company exclude: [], Description exclude: []
+2025-03-13 23:04:07.334 [http-nio-8080-exec-9] DEBUG com.trackjobs.service.UserService - Getting user for authenticated username: daniel ivanov
+2025-03-13 23:04:07.335 [http-nio-8080-exec-9] DEBUG com.trackjobs.service.UserService - Found user: ID=1, username=daniel ivanov
+2025-03-13 23:04:07.336 [http-nio-8080-exec-9] INFO  com.trackjobs.service.JobService - Scraping jobs for user: daniel ivanov (ID: 1)
+2025-03-13 23:05:38.706 [SpringApplicationShutdownHook] INFO  o.s.o.j.LocalContainerEntityManagerFactoryBean - Closing JPA EntityManagerFactory for persistence unit 'default'
+2025-03-13 23:05:38.708 [SpringApplicationShutdownHook] INFO  com.zaxxer.hikari.HikariDataSource - HikariPool-1 - Shutdown initiated...
+2025-03-13 23:05:38.714 [SpringApplicationShutdownHook] INFO  com.zaxxer.hikari.HikariDataSource - HikariPool-1 - Shutdown completed.
+2025-03-13 23:09:52.845 [main] INFO  com.trackjobs.TrackJobsApplication - Starting TrackJobsApplication v1.0.0 using Java 21.0.6 on DanielsPC with PID 765530 (/opt/trackjobs/target/trackjobs-1.0.0.jar started by danie in /opt/trackjobs)
+2025-03-13 23:09:52.846 [main] DEBUG com.trackjobs.TrackJobsApplication - Running with Spring Boot v2.7.16, Spring v5.3.30
+2025-03-13 23:09:52.847 [main] INFO  com.trackjobs.TrackJobsApplication - No active profile set, falling back to 1 default profile: "default"
+2025-03-13 23:09:53.340 [main] INFO  o.s.d.r.c.RepositoryConfigurationDelegate - Bootstrapping Spring Data JPA repositories in DEFAULT mode.
+2025-03-13 23:09:53.381 [main] INFO  o.s.d.r.c.RepositoryConfigurationDelegate - Finished Spring Data repository scanning in 35 ms. Found 3 JPA repository interfaces.
+2025-03-13 23:09:53.726 [main] INFO  o.s.b.w.e.tomcat.TomcatWebServer - Tomcat initialized with port(s): 8080 (http)
+2025-03-13 23:09:53.733 [main] INFO  o.a.coyote.http11.Http11NioProtocol - Initializing ProtocolHandler ["http-nio-8080"]
+2025-03-13 23:09:53.735 [main] INFO  o.a.catalina.core.StandardService - Starting service [Tomcat]
+2025-03-13 23:09:53.735 [main] INFO  o.a.catalina.core.StandardEngine - Starting Servlet engine: [Apache Tomcat/9.0.80]
+2025-03-13 23:09:53.777 [main] INFO  o.a.c.c.C.[Tomcat].[localhost].[/] - Initializing Spring embedded WebApplicationContext
+2025-03-13 23:09:53.777 [main] INFO  o.s.b.w.s.c.ServletWebServerApplicationContext - Root WebApplicationContext: initialization completed in 899 ms
+2025-03-13 23:09:53.994 [main] INFO  o.h.jpa.internal.util.LogHelper - HHH000204: Processing PersistenceUnitInfo [name: default]
+2025-03-13 23:09:54.029 [main] INFO  org.hibernate.Version - HHH000412: Hibernate ORM core version 5.6.15.Final
+2025-03-13 23:09:54.122 [main] INFO  o.h.annotations.common.Version - HCANN000001: Hibernate Commons Annotations {5.1.2.Final}
+2025-03-13 23:09:54.178 [main] INFO  com.zaxxer.hikari.HikariDataSource - HikariPool-1 - Starting...
+2025-03-13 23:09:54.268 [main] INFO  com.zaxxer.hikari.HikariDataSource - HikariPool-1 - Start completed.
+2025-03-13 23:09:54.275 [main] INFO  org.hibernate.dialect.Dialect - HHH000400: Using dialect: org.hibernate.dialect.MySQL8Dialect
+2025-03-13 23:09:54.640 [main] INFO  o.h.e.t.j.p.i.JtaPlatformInitiator - HHH000490: Using JtaPlatform implementation: [org.hibernate.engine.transaction.jta.platform.internal.NoJtaPlatform]
+2025-03-13 23:09:54.645 [main] INFO  o.s.o.j.LocalContainerEntityManagerFactoryBean - Initialized JPA EntityManagerFactory for persistence unit 'default'
+2025-03-13 23:09:55.056 [main] INFO  o.s.b.a.e.web.EndpointLinksResolver - Exposing 1 endpoint(s) beneath base path '/actuator'
+2025-03-13 23:09:55.166 [main] INFO  o.s.s.web.DefaultSecurityFilterChain - Will secure any request with [org.springframework.security.web.session.DisableEncodeUrlFilter@753fd7a1, org.springframework.security.web.context.request.async.WebAsyncManagerIntegrationFilter@12a2585b, org.springframework.security.web.context.SecurityContextPersistenceFilter@228bda54, org.springframework.security.web.header.HeaderWriterFilter@609e57da, org.springframework.security.web.csrf.CsrfFilter@33a55bd8, org.springframework.security.web.authentication.logout.LogoutFilter@7affc159, org.springframework.security.web.authentication.UsernamePasswordAuthenticationFilter@10c47c79, org.springframework.security.web.savedrequest.RequestCacheAwareFilter@b3e86d5, org.springframework.security.web.servletapi.SecurityContextHolderAwareRequestFilter@72b43104, org.springframework.security.web.authentication.AnonymousAuthenticationFilter@21b6c9c2, org.springframework.security.web.session.SessionManagementFilter@4d634127, org.springframework.security.web.access.ExceptionTranslationFilter@3625a016, org.springframework.security.web.access.intercept.FilterSecurityInterceptor@7da34b26]
+2025-03-13 23:09:55.198 [main] WARN  o.s.b.a.o.j.JpaBaseConfiguration$JpaWebConfiguration - spring.jpa.open-in-view is enabled by default. Therefore, database queries may be performed during view rendering. Explicitly configure spring.jpa.open-in-view to disable this warning
+2025-03-13 23:09:55.277 [main] INFO  o.s.b.a.w.s.WelcomePageHandlerMapping - Adding welcome page template: index
+2025-03-13 23:09:55.380 [main] INFO  o.a.coyote.http11.Http11NioProtocol - Starting ProtocolHandler ["http-nio-8080"]
+2025-03-13 23:09:55.388 [main] INFO  o.s.b.w.e.tomcat.TomcatWebServer - Tomcat started on port(s): 8080 (http) with context path ''
+2025-03-13 23:09:55.397 [main] INFO  com.trackjobs.TrackJobsApplication - Started TrackJobsApplication in 2.771 seconds (JVM running for 3.093)
+2025-03-13 23:10:09.102 [http-nio-8080-exec-1] INFO  o.a.c.c.C.[Tomcat].[localhost].[/] - Initializing Spring DispatcherServlet 'dispatcherServlet'
+2025-03-13 23:10:09.102 [http-nio-8080-exec-1] INFO  o.s.web.servlet.DispatcherServlet - Initializing Servlet 'dispatcherServlet'
+2025-03-13 23:10:09.103 [http-nio-8080-exec-1] INFO  o.s.web.servlet.DispatcherServlet - Completed initialization in 1 ms
+2025-03-13 23:10:10.726 [http-nio-8080-exec-5] DEBUG com.trackjobs.service.UserService - Getting user for authenticated username: daniel ivanov
+2025-03-13 23:10:10.728 [http-nio-8080-exec-5] DEBUG com.trackjobs.service.UserService - Found user: ID=1, username=daniel ivanov
+2025-03-13 23:10:10.875 [http-nio-8080-exec-8] DEBUG com.trackjobs.service.UserService - Getting user for authenticated username: daniel ivanov
+2025-03-13 23:10:10.877 [http-nio-8080-exec-8] DEBUG com.trackjobs.service.UserService - Found user: ID=1, username=daniel ivanov
+2025-03-13 23:10:26.057 [http-nio-8080-exec-9] INFO  c.trackjobs.controller.JobController - New scraping request - Keywords: 'Software Engineer', Location: 'Seattle', Pages: 1
+2025-03-13 23:10:26.058 [http-nio-8080-exec-9] INFO  c.trackjobs.controller.JobController - Advanced filters - Title include: [], Title exclude: [], Company exclude: [], Description exclude: []
+2025-03-13 23:10:26.059 [http-nio-8080-exec-9] DEBUG com.trackjobs.service.UserService - Getting user for authenticated username: daniel ivanov
+2025-03-13 23:10:26.061 [http-nio-8080-exec-9] DEBUG com.trackjobs.service.UserService - Found user: ID=1, username=daniel ivanov
+2025-03-13 23:10:26.061 [http-nio-8080-exec-9] INFO  com.trackjobs.service.JobService - Scraping jobs for user: daniel ivanov (ID: 1)
+2025-03-13 23:14:38.874 [SpringApplicationShutdownHook] INFO  o.s.o.j.LocalContainerEntityManagerFactoryBean - Closing JPA EntityManagerFactory for persistence unit 'default'
+2025-03-13 23:14:38.876 [SpringApplicationShutdownHook] INFO  com.zaxxer.hikari.HikariDataSource - HikariPool-1 - Shutdown initiated...
+2025-03-13 23:14:38.880 [SpringApplicationShutdownHook] INFO  com.zaxxer.hikari.HikariDataSource - HikariPool-1 - Shutdown completed.
+2025-03-13 23:20:11.402 [main] INFO  com.trackjobs.TrackJobsApplication - Starting TrackJobsApplication v1.0.0 using Java 21.0.6 on DanielsPC with PID 768310 (/opt/trackjobs/target/trackjobs-1.0.0.jar started by danie in /opt/trackjobs)
+2025-03-13 23:20:11.403 [main] DEBUG com.trackjobs.TrackJobsApplication - Running with Spring Boot v2.7.16, Spring v5.3.30
+2025-03-13 23:20:11.404 [main] INFO  com.trackjobs.TrackJobsApplication - No active profile set, falling back to 1 default profile: "default"
+2025-03-13 23:20:11.914 [main] INFO  o.s.d.r.c.RepositoryConfigurationDelegate - Bootstrapping Spring Data JPA repositories in DEFAULT mode.
+2025-03-13 23:20:11.955 [main] INFO  o.s.d.r.c.RepositoryConfigurationDelegate - Finished Spring Data repository scanning in 35 ms. Found 3 JPA repository interfaces.
+2025-03-13 23:20:12.320 [main] INFO  o.s.b.w.e.tomcat.TomcatWebServer - Tomcat initialized with port(s): 8080 (http)
+2025-03-13 23:20:12.325 [main] INFO  o.a.coyote.http11.Http11NioProtocol - Initializing ProtocolHandler ["http-nio-8080"]
+2025-03-13 23:20:12.326 [main] INFO  o.a.catalina.core.StandardService - Starting service [Tomcat]
+2025-03-13 23:20:12.327 [main] INFO  o.a.catalina.core.StandardEngine - Starting Servlet engine: [Apache Tomcat/9.0.80]
+2025-03-13 23:20:12.364 [main] INFO  o.a.c.c.C.[Tomcat].[localhost].[/] - Initializing Spring embedded WebApplicationContext
+2025-03-13 23:20:12.364 [main] INFO  o.s.b.w.s.c.ServletWebServerApplicationContext - Root WebApplicationContext: initialization completed in 925 ms
+2025-03-13 23:20:12.579 [main] INFO  o.h.jpa.internal.util.LogHelper - HHH000204: Processing PersistenceUnitInfo [name: default]
+2025-03-13 23:20:12.615 [main] INFO  org.hibernate.Version - HHH000412: Hibernate ORM core version 5.6.15.Final
+2025-03-13 23:20:12.703 [main] INFO  o.h.annotations.common.Version - HCANN000001: Hibernate Commons Annotations {5.1.2.Final}
+2025-03-13 23:20:12.757 [main] INFO  com.zaxxer.hikari.HikariDataSource - HikariPool-1 - Starting...
+2025-03-13 23:20:12.843 [main] INFO  com.zaxxer.hikari.HikariDataSource - HikariPool-1 - Start completed.
+2025-03-13 23:20:12.850 [main] INFO  org.hibernate.dialect.Dialect - HHH000400: Using dialect: org.hibernate.dialect.MySQL8Dialect
+2025-03-13 23:20:13.205 [main] INFO  o.h.e.t.j.p.i.JtaPlatformInitiator - HHH000490: Using JtaPlatform implementation: [org.hibernate.engine.transaction.jta.platform.internal.NoJtaPlatform]
+2025-03-13 23:20:13.210 [main] INFO  o.s.o.j.LocalContainerEntityManagerFactoryBean - Initialized JPA EntityManagerFactory for persistence unit 'default'
+2025-03-13 23:20:13.648 [main] INFO  o.s.b.a.e.web.EndpointLinksResolver - Exposing 1 endpoint(s) beneath base path '/actuator'
+2025-03-13 23:20:13.741 [main] INFO  o.s.s.web.DefaultSecurityFilterChain - Will secure any request with [org.springframework.security.web.session.DisableEncodeUrlFilter@6968c1d6, org.springframework.security.web.context.request.async.WebAsyncManagerIntegrationFilter@7d986d83, org.springframework.security.web.context.SecurityContextPersistenceFilter@383caf89, org.springframework.security.web.header.HeaderWriterFilter@21263314, org.springframework.security.web.csrf.CsrfFilter@43c57161, org.springframework.security.web.authentication.logout.LogoutFilter@3ff54f3d, org.springframework.security.web.authentication.UsernamePasswordAuthenticationFilter@27abb6ca, org.springframework.security.web.savedrequest.RequestCacheAwareFilter@71ed560f, org.springframework.security.web.servletapi.SecurityContextHolderAwareRequestFilter@5b88b8e, org.springframework.security.web.authentication.AnonymousAuthenticationFilter@77f991c, org.springframework.security.web.session.SessionManagementFilter@4a92c6a9, org.springframework.security.web.access.ExceptionTranslationFilter@642857e0, org.springframework.security.web.access.intercept.FilterSecurityInterceptor@798dad3d]
+2025-03-13 23:20:13.801 [main] WARN  o.s.b.a.o.j.JpaBaseConfiguration$JpaWebConfiguration - spring.jpa.open-in-view is enabled by default. Therefore, database queries may be performed during view rendering. Explicitly configure spring.jpa.open-in-view to disable this warning
+2025-03-13 23:20:13.877 [main] INFO  o.s.b.a.w.s.WelcomePageHandlerMapping - Adding welcome page template: index
+2025-03-13 23:20:13.974 [main] INFO  o.a.coyote.http11.Http11NioProtocol - Starting ProtocolHandler ["http-nio-8080"]
+2025-03-13 23:20:13.983 [main] INFO  o.s.b.w.e.tomcat.TomcatWebServer - Tomcat started on port(s): 8080 (http) with context path ''
+2025-03-13 23:20:13.984 [main] INFO  o.s.m.s.b.SimpleBrokerMessageHandler - Starting...
+2025-03-13 23:20:13.984 [main] INFO  o.s.m.s.b.SimpleBrokerMessageHandler - BrokerAvailabilityEvent[available=true, SimpleBrokerMessageHandler [org.springframework.messaging.simp.broker.DefaultSubscriptionRegistry@679dd234]]
+2025-03-13 23:20:13.985 [main] INFO  o.s.m.s.b.SimpleBrokerMessageHandler - Started.
+2025-03-13 23:20:13.994 [main] INFO  com.trackjobs.TrackJobsApplication - Started TrackJobsApplication in 2.84 seconds (JVM running for 3.149)
+2025-03-13 23:20:20.864 [http-nio-8080-exec-1] INFO  o.a.c.c.C.[Tomcat].[localhost].[/] - Initializing Spring DispatcherServlet 'dispatcherServlet'
+2025-03-13 23:20:20.865 [http-nio-8080-exec-1] INFO  o.s.web.servlet.DispatcherServlet - Initializing Servlet 'dispatcherServlet'
+2025-03-13 23:20:20.865 [http-nio-8080-exec-1] INFO  o.s.web.servlet.DispatcherServlet - Completed initialization in 0 ms
+2025-03-13 23:20:22.249 [http-nio-8080-exec-5] DEBUG com.trackjobs.service.UserService - Getting user for authenticated username: daniel ivanov
+2025-03-13 23:20:22.251 [http-nio-8080-exec-5] DEBUG com.trackjobs.service.UserService - Found user: ID=1, username=daniel ivanov
+2025-03-13 23:20:22.421 [http-nio-8080-exec-8] DEBUG com.trackjobs.service.UserService - Getting user for authenticated username: daniel ivanov
+2025-03-13 23:20:22.423 [http-nio-8080-exec-8] DEBUG com.trackjobs.service.UserService - Found user: ID=1, username=daniel ivanov
+2025-03-13 23:20:25.777 [http-nio-8080-exec-9] DEBUG com.trackjobs.service.UserService - Getting user for authenticated username: daniel ivanov
+2025-03-13 23:20:25.780 [http-nio-8080-exec-9] DEBUG com.trackjobs.service.UserService - Found user: ID=1, username=daniel ivanov
+2025-03-13 23:20:29.368 [http-nio-8080-exec-10] INFO  c.trackjobs.controller.JobController - New scraping request - Keywords: 'Software Engineer', Location: 'Seattle', Pages: 1
+2025-03-13 23:20:29.368 [http-nio-8080-exec-10] INFO  c.trackjobs.controller.JobController - Advanced filters - Title include: [], Title exclude: [], Company exclude: [], Description exclude: []
+2025-03-13 23:20:29.369 [http-nio-8080-exec-10] DEBUG com.trackjobs.service.UserService - Getting user for authenticated username: daniel ivanov
+2025-03-13 23:20:29.371 [http-nio-8080-exec-10] DEBUG com.trackjobs.service.UserService - Found user: ID=1, username=daniel ivanov
+2025-03-13 23:20:29.371 [http-nio-8080-exec-10] INFO  com.trackjobs.service.JobService - Scraping jobs for user: daniel ivanov (ID: 1)
+2025-03-13 23:21:13.785 [MessageBroker-1] INFO  o.s.w.s.c.WebSocketMessageBrokerStats - WebSocketSession[0 current WS(0)-HttpStream(0)-HttpPoll(0), 0 total, 0 closed abnormally (0 connect failure, 0 send limit, 0 transport error)], stompSubProtocol[processed CONNECT(0)-CONNECTED(0)-DISCONNECT(0)], stompBrokerRelay[null], inboundChannel[pool size = 0, active threads = 0, queued tasks = 0, completed tasks = 0], outboundChannel[pool size = 0, active threads = 0, queued tasks = 0, completed tasks = 0], sockJsScheduler[pool size = 2, active threads = 1, queued tasks = 1, completed tasks = 0]
+2025-03-13 23:22:49.387 [http-nio-8080-exec-6] INFO  c.trackjobs.controller.JobController - Search request - Keywords: 'senior', Location: 'null', Experience Level: 'null', Job Type: 'null', Days Old: 7, Remote Only: false
+2025-03-13 23:22:49.388 [http-nio-8080-exec-6] DEBUG com.trackjobs.service.UserService - Getting user for authenticated username: daniel ivanov
+2025-03-13 23:22:49.389 [http-nio-8080-exec-6] DEBUG com.trackjobs.service.UserService - Found user: ID=1, username=daniel ivanov
+2025-03-13 23:22:49.391 [http-nio-8080-exec-6] INFO  com.trackjobs.service.JobService - Initial search found 5 jobs
+2025-03-13 23:22:49.392 [http-nio-8080-exec-6] INFO  com.trackjobs.service.JobService - After date filter (last 7 days): 5 jobs
+2025-03-13 23:22:49.392 [http-nio-8080-exec-6] INFO  com.trackjobs.service.JobService - Final filtered results: 5 jobs
+2025-03-13 23:32:43.122 [SpringApplicationShutdownHook] INFO  o.s.m.s.b.SimpleBrokerMessageHandler - Stopping...
+2025-03-13 23:32:43.123 [SpringApplicationShutdownHook] INFO  o.s.m.s.b.SimpleBrokerMessageHandler - BrokerAvailabilityEvent[available=false, SimpleBrokerMessageHandler [org.springframework.messaging.simp.broker.DefaultSubscriptionRegistry@679dd234]]
+2025-03-13 23:32:43.123 [SpringApplicationShutdownHook] INFO  o.s.m.s.b.SimpleBrokerMessageHandler - Stopped.
+2025-03-13 23:32:43.133 [SpringApplicationShutdownHook] INFO  o.s.o.j.LocalContainerEntityManagerFactoryBean - Closing JPA EntityManagerFactory for persistence unit 'default'
+2025-03-13 23:32:43.136 [SpringApplicationShutdownHook] INFO  com.zaxxer.hikari.HikariDataSource - HikariPool-1 - Shutdown initiated...
+2025-03-13 23:32:43.142 [SpringApplicationShutdownHook] INFO  com.zaxxer.hikari.HikariDataSource - HikariPool-1 - Shutdown completed.
+2025-03-13 23:32:54.735 [main] INFO  com.trackjobs.TrackJobsApplication - Starting TrackJobsApplication v1.0.0 using Java 21.0.6 on DanielsPC with PID 771674 (/opt/trackjobs/target/trackjobs-1.0.0.jar started by danie in /opt/trackjobs)
+2025-03-13 23:32:54.736 [main] DEBUG com.trackjobs.TrackJobsApplication - Running with Spring Boot v2.7.16, Spring v5.3.30
+2025-03-13 23:32:54.737 [main] INFO  com.trackjobs.TrackJobsApplication - No active profile set, falling back to 1 default profile: "default"
+2025-03-13 23:32:55.246 [main] INFO  o.s.d.r.c.RepositoryConfigurationDelegate - Bootstrapping Spring Data JPA repositories in DEFAULT mode.
+2025-03-13 23:32:55.286 [main] INFO  o.s.d.r.c.RepositoryConfigurationDelegate - Finished Spring Data repository scanning in 34 ms. Found 3 JPA repository interfaces.
+2025-03-13 23:32:55.651 [main] INFO  o.s.b.w.e.tomcat.TomcatWebServer - Tomcat initialized with port(s): 8080 (http)
+2025-03-13 23:32:55.656 [main] INFO  o.a.coyote.http11.Http11NioProtocol - Initializing ProtocolHandler ["http-nio-8080"]
+2025-03-13 23:32:55.660 [main] INFO  o.a.catalina.core.StandardService - Starting service [Tomcat]
+2025-03-13 23:32:55.660 [main] INFO  o.a.catalina.core.StandardEngine - Starting Servlet engine: [Apache Tomcat/9.0.80]
+2025-03-13 23:32:55.701 [main] INFO  o.a.c.c.C.[Tomcat].[localhost].[/] - Initializing Spring embedded WebApplicationContext
+2025-03-13 23:32:55.702 [main] INFO  o.s.b.w.s.c.ServletWebServerApplicationContext - Root WebApplicationContext: initialization completed in 931 ms
+2025-03-13 23:32:55.925 [main] INFO  o.h.jpa.internal.util.LogHelper - HHH000204: Processing PersistenceUnitInfo [name: default]
+2025-03-13 23:32:55.963 [main] INFO  org.hibernate.Version - HHH000412: Hibernate ORM core version 5.6.15.Final
+2025-03-13 23:32:56.097 [main] INFO  o.h.annotations.common.Version - HCANN000001: Hibernate Commons Annotations {5.1.2.Final}
+2025-03-13 23:32:56.174 [main] INFO  com.zaxxer.hikari.HikariDataSource - HikariPool-1 - Starting...
+2025-03-13 23:32:56.268 [main] INFO  com.zaxxer.hikari.HikariDataSource - HikariPool-1 - Start completed.
+2025-03-13 23:32:56.276 [main] INFO  org.hibernate.dialect.Dialect - HHH000400: Using dialect: org.hibernate.dialect.MySQL8Dialect
+2025-03-13 23:32:56.672 [main] INFO  o.h.e.t.j.p.i.JtaPlatformInitiator - HHH000490: Using JtaPlatform implementation: [org.hibernate.engine.transaction.jta.platform.internal.NoJtaPlatform]
+2025-03-13 23:32:56.678 [main] INFO  o.s.o.j.LocalContainerEntityManagerFactoryBean - Initialized JPA EntityManagerFactory for persistence unit 'default'
+2025-03-13 23:32:57.147 [main] INFO  o.s.b.a.e.web.EndpointLinksResolver - Exposing 1 endpoint(s) beneath base path '/actuator'
+2025-03-13 23:32:57.232 [main] INFO  o.s.s.web.DefaultSecurityFilterChain - Will secure any request with [org.springframework.security.web.session.DisableEncodeUrlFilter@6968c1d6, org.springframework.security.web.context.request.async.WebAsyncManagerIntegrationFilter@7d986d83, org.springframework.security.web.context.SecurityContextPersistenceFilter@383caf89, org.springframework.security.web.header.HeaderWriterFilter@21263314, org.springframework.security.web.csrf.CsrfFilter@43c57161, org.springframework.security.web.authentication.logout.LogoutFilter@3ff54f3d, org.springframework.security.web.authentication.UsernamePasswordAuthenticationFilter@27abb6ca, org.springframework.security.web.savedrequest.RequestCacheAwareFilter@71ed560f, org.springframework.security.web.servletapi.SecurityContextHolderAwareRequestFilter@5b88b8e, org.springframework.security.web.authentication.AnonymousAuthenticationFilter@77f991c, org.springframework.security.web.session.SessionManagementFilter@4a92c6a9, org.springframework.security.web.access.ExceptionTranslationFilter@642857e0, org.springframework.security.web.access.intercept.FilterSecurityInterceptor@798dad3d]
+2025-03-13 23:32:57.289 [main] WARN  o.s.b.a.o.j.JpaBaseConfiguration$JpaWebConfiguration - spring.jpa.open-in-view is enabled by default. Therefore, database queries may be performed during view rendering. Explicitly configure spring.jpa.open-in-view to disable this warning
+2025-03-13 23:32:57.366 [main] INFO  o.s.b.a.w.s.WelcomePageHandlerMapping - Adding welcome page template: index
+2025-03-13 23:32:57.467 [main] INFO  o.a.coyote.http11.Http11NioProtocol - Starting ProtocolHandler ["http-nio-8080"]
+2025-03-13 23:32:57.475 [main] INFO  o.s.b.w.e.tomcat.TomcatWebServer - Tomcat started on port(s): 8080 (http) with context path ''
+2025-03-13 23:32:57.476 [main] INFO  o.s.m.s.b.SimpleBrokerMessageHandler - Starting...
+2025-03-13 23:32:57.477 [main] INFO  o.s.m.s.b.SimpleBrokerMessageHandler - BrokerAvailabilityEvent[available=true, SimpleBrokerMessageHandler [org.springframework.messaging.simp.broker.DefaultSubscriptionRegistry@679dd234]]
+2025-03-13 23:32:57.477 [main] INFO  o.s.m.s.b.SimpleBrokerMessageHandler - Started.
+2025-03-13 23:32:57.486 [main] INFO  com.trackjobs.TrackJobsApplication - Started TrackJobsApplication in 2.979 seconds (JVM running for 3.308)
+2025-03-13 23:32:59.014 [http-nio-8080-exec-1] INFO  o.a.c.c.C.[Tomcat].[localhost].[/] - Initializing Spring DispatcherServlet 'dispatcherServlet'
+2025-03-13 23:32:59.014 [http-nio-8080-exec-1] INFO  o.s.web.servlet.DispatcherServlet - Initializing Servlet 'dispatcherServlet'
+2025-03-13 23:32:59.015 [http-nio-8080-exec-1] INFO  o.s.web.servlet.DispatcherServlet - Completed initialization in 1 ms
+2025-03-13 23:33:03.933 [http-nio-8080-exec-6] DEBUG com.trackjobs.service.UserService - Getting user for authenticated username: daniel ivanov
+2025-03-13 23:33:03.935 [http-nio-8080-exec-6] DEBUG com.trackjobs.service.UserService - Found user: ID=1, username=daniel ivanov
+2025-03-13 23:33:04.132 [http-nio-8080-exec-9] DEBUG com.trackjobs.service.UserService - Getting user for authenticated username: daniel ivanov
+2025-03-13 23:33:04.134 [http-nio-8080-exec-9] DEBUG com.trackjobs.service.UserService - Found user: ID=1, username=daniel ivanov
+2025-03-13 23:33:08.624 [http-nio-8080-exec-3] DEBUG com.trackjobs.service.UserService - Getting user for authenticated username: daniel ivanov
+2025-03-13 23:33:08.626 [http-nio-8080-exec-3] DEBUG com.trackjobs.service.UserService - Found user: ID=1, username=daniel ivanov
+2025-03-13 23:33:13.899 [http-nio-8080-exec-4] INFO  c.trackjobs.controller.JobController - New scraping request - Keywords: 'Software Engineer', Location: 'Seattle', Pages: 1
+2025-03-13 23:33:13.899 [http-nio-8080-exec-4] INFO  c.trackjobs.controller.JobController - Advanced filters - Title include: [], Title exclude: [], Company exclude: [], Description exclude: []
+2025-03-13 23:33:13.900 [http-nio-8080-exec-4] DEBUG com.trackjobs.service.UserService - Getting user for authenticated username: daniel ivanov
+2025-03-13 23:33:13.901 [http-nio-8080-exec-4] DEBUG com.trackjobs.service.UserService - Found user: ID=1, username=daniel ivanov
+2025-03-13 23:33:13.902 [http-nio-8080-exec-4] INFO  com.trackjobs.service.JobService - Scraping jobs for user: daniel ivanov (ID: 1)
+2025-03-13 23:33:57.167 [http-nio-8080-exec-6] INFO  c.trackjobs.controller.JobController - New scraping request - Keywords: 'Data Analyst', Location: 'Seattle', Pages: 1
+2025-03-13 23:33:57.167 [http-nio-8080-exec-6] INFO  c.trackjobs.controller.JobController - Advanced filters - Title include: [], Title exclude: [], Company exclude: [], Description exclude: []
+2025-03-13 23:33:57.168 [http-nio-8080-exec-6] DEBUG com.trackjobs.service.UserService - Getting user for authenticated username: daniel ivanov
+2025-03-13 23:33:57.170 [http-nio-8080-exec-6] DEBUG com.trackjobs.service.UserService - Found user: ID=1, username=daniel ivanov
+2025-03-13 23:33:57.170 [http-nio-8080-exec-6] INFO  com.trackjobs.service.JobService - Scraping jobs for user: daniel ivanov (ID: 1)
+2025-03-13 23:33:57.273 [MessageBroker-1] INFO  o.s.w.s.c.WebSocketMessageBrokerStats - WebSocketSession[0 current WS(0)-HttpStream(0)-HttpPoll(0), 0 total, 0 closed abnormally (0 connect failure, 0 send limit, 0 transport error)], stompSubProtocol[processed CONNECT(0)-CONNECTED(0)-DISCONNECT(0)], stompBrokerRelay[null], inboundChannel[pool size = 0, active threads = 0, queued tasks = 0, completed tasks = 0], outboundChannel[pool size = 0, active threads = 0, queued tasks = 0, completed tasks = 0], sockJsScheduler[pool size = 2, active threads = 1, queued tasks = 1, completed tasks = 0]
+2025-03-13 23:34:46.674 [http-nio-8080-exec-7] INFO  c.trackjobs.controller.JobController - New scraping request - Keywords: 'Accountant', Location: 'Seattle', Pages: 1
+2025-03-13 23:34:46.674 [http-nio-8080-exec-7] INFO  c.trackjobs.controller.JobController - Advanced filters - Title include: [], Title exclude: [], Company exclude: [], Description exclude: []
+2025-03-13 23:34:46.675 [http-nio-8080-exec-7] DEBUG com.trackjobs.service.UserService - Getting user for authenticated username: daniel ivanov
+2025-03-13 23:34:46.677 [http-nio-8080-exec-7] DEBUG com.trackjobs.service.UserService - Found user: ID=1, username=daniel ivanov
+2025-03-13 23:34:46.677 [http-nio-8080-exec-7] INFO  com.trackjobs.service.JobService - Scraping jobs for user: daniel ivanov (ID: 1)
+2025-03-13 23:35:47.564 [SpringApplicationShutdownHook] INFO  o.s.m.s.b.SimpleBrokerMessageHandler - Stopping...
+2025-03-13 23:35:47.565 [SpringApplicationShutdownHook] INFO  o.s.m.s.b.SimpleBrokerMessageHandler - BrokerAvailabilityEvent[available=false, SimpleBrokerMessageHandler [org.springframework.messaging.simp.broker.DefaultSubscriptionRegistry@679dd234]]
+2025-03-13 23:35:47.565 [SpringApplicationShutdownHook] INFO  o.s.m.s.b.SimpleBrokerMessageHandler - Stopped.
+2025-03-13 23:35:50.196 [main] INFO  com.trackjobs.TrackJobsApplication - Starting TrackJobsApplication v1.0.0 using Java 21.0.6 on DanielsPC with PID 772519 (/opt/trackjobs/target/trackjobs-1.0.0.jar started by danie in /opt/trackjobs)
+2025-03-13 23:35:50.197 [main] DEBUG com.trackjobs.TrackJobsApplication - Running with Spring Boot v2.7.16, Spring v5.3.30
+2025-03-13 23:35:50.198 [main] INFO  com.trackjobs.TrackJobsApplication - No active profile set, falling back to 1 default profile: "default"
+2025-03-13 23:35:50.695 [main] INFO  o.s.d.r.c.RepositoryConfigurationDelegate - Bootstrapping Spring Data JPA repositories in DEFAULT mode.
+2025-03-13 23:35:50.737 [main] INFO  o.s.d.r.c.RepositoryConfigurationDelegate - Finished Spring Data repository scanning in 35 ms. Found 3 JPA repository interfaces.
+2025-03-13 23:35:51.150 [main] INFO  o.s.b.w.e.tomcat.TomcatWebServer - Tomcat initialized with port(s): 8080 (http)
+2025-03-13 23:35:51.155 [main] INFO  o.a.coyote.http11.Http11NioProtocol - Initializing ProtocolHandler ["http-nio-8080"]
+2025-03-13 23:35:51.156 [main] INFO  o.a.catalina.core.StandardService - Starting service [Tomcat]
+2025-03-13 23:35:51.157 [main] INFO  o.a.catalina.core.StandardEngine - Starting Servlet engine: [Apache Tomcat/9.0.80]
+2025-03-13 23:35:51.194 [main] INFO  o.a.c.c.C.[Tomcat].[localhost].[/] - Initializing Spring embedded WebApplicationContext
+2025-03-13 23:35:51.194 [main] INFO  o.s.b.w.s.c.ServletWebServerApplicationContext - Root WebApplicationContext: initialization completed in 963 ms
+2025-03-13 23:35:51.406 [main] INFO  o.h.jpa.internal.util.LogHelper - HHH000204: Processing PersistenceUnitInfo [name: default]
+2025-03-13 23:35:51.443 [main] INFO  org.hibernate.Version - HHH000412: Hibernate ORM core version 5.6.15.Final
+2025-03-13 23:35:51.535 [main] INFO  o.h.annotations.common.Version - HCANN000001: Hibernate Commons Annotations {5.1.2.Final}
+2025-03-13 23:35:51.594 [main] INFO  com.zaxxer.hikari.HikariDataSource - HikariPool-1 - Starting...
+2025-03-13 23:35:51.680 [main] INFO  com.zaxxer.hikari.HikariDataSource - HikariPool-1 - Start completed.
+2025-03-13 23:35:51.687 [main] INFO  org.hibernate.dialect.Dialect - HHH000400: Using dialect: org.hibernate.dialect.MySQL8Dialect
+2025-03-13 23:35:52.045 [main] INFO  o.h.e.t.j.p.i.JtaPlatformInitiator - HHH000490: Using JtaPlatform implementation: [org.hibernate.engine.transaction.jta.platform.internal.NoJtaPlatform]
+2025-03-13 23:35:52.050 [main] INFO  o.s.o.j.LocalContainerEntityManagerFactoryBean - Initialized JPA EntityManagerFactory for persistence unit 'default'
+2025-03-13 23:35:52.485 [main] INFO  o.s.b.a.e.web.EndpointLinksResolver - Exposing 1 endpoint(s) beneath base path '/actuator'
+2025-03-13 23:35:52.573 [main] INFO  o.s.s.web.DefaultSecurityFilterChain - Will secure any request with [org.springframework.security.web.session.DisableEncodeUrlFilter@12a470dd, org.springframework.security.web.context.request.async.WebAsyncManagerIntegrationFilter@6968bcec, org.springframework.security.web.context.SecurityContextPersistenceFilter@b73433, org.springframework.security.web.header.HeaderWriterFilter@383caf89, org.springframework.security.web.csrf.CsrfFilter@54e12f4c, org.springframework.security.web.authentication.logout.LogoutFilter@493da830, org.springframework.security.web.authentication.UsernamePasswordAuthenticationFilter@3a7e365, org.springframework.security.web.savedrequest.RequestCacheAwareFilter@5a545b0f, org.springframework.security.web.servletapi.SecurityContextHolderAwareRequestFilter@2be21396, org.springframework.security.web.authentication.AnonymousAuthenticationFilter@5568c66f, org.springframework.security.web.session.SessionManagementFilter@71ed560f, org.springframework.security.web.access.ExceptionTranslationFilter@5c9934da, org.springframework.security.web.access.intercept.FilterSecurityInterceptor@77f991c]
+2025-03-13 23:35:52.627 [main] WARN  o.s.b.a.o.j.JpaBaseConfiguration$JpaWebConfiguration - spring.jpa.open-in-view is enabled by default. Therefore, database queries may be performed during view rendering. Explicitly configure spring.jpa.open-in-view to disable this warning
+2025-03-13 23:35:52.701 [main] INFO  o.s.b.a.w.s.WelcomePageHandlerMapping - Adding welcome page template: index
+2025-03-13 23:35:52.804 [main] INFO  o.a.coyote.http11.Http11NioProtocol - Starting ProtocolHandler ["http-nio-8080"]
+2025-03-13 23:35:52.812 [main] INFO  o.s.b.w.e.tomcat.TomcatWebServer - Tomcat started on port(s): 8080 (http) with context path ''
+2025-03-13 23:35:52.813 [main] INFO  o.s.m.s.b.SimpleBrokerMessageHandler - Starting...
+2025-03-13 23:35:52.813 [main] INFO  o.s.m.s.b.SimpleBrokerMessageHandler - BrokerAvailabilityEvent[available=true, SimpleBrokerMessageHandler [org.springframework.messaging.simp.broker.DefaultSubscriptionRegistry@4c3de38e]]
+2025-03-13 23:35:52.813 [main] INFO  o.s.m.s.b.SimpleBrokerMessageHandler - Started.
+2025-03-13 23:35:52.821 [main] INFO  com.trackjobs.TrackJobsApplication - Started TrackJobsApplication in 2.867 seconds (JVM running for 3.2)
+2025-03-13 23:35:54.678 [SpringApplicationShutdownHook] INFO  o.s.o.j.LocalContainerEntityManagerFactoryBean - Closing JPA EntityManagerFactory for persistence unit 'default'
+2025-03-13 23:35:54.682 [SpringApplicationShutdownHook] INFO  com.zaxxer.hikari.HikariDataSource - HikariPool-1 - Shutdown initiated...
+2025-03-13 23:35:54.687 [SpringApplicationShutdownHook] INFO  com.zaxxer.hikari.HikariDataSource - HikariPool-1 - Shutdown completed.
+2025-03-13 23:35:58.037 [SpringApplicationShutdownHook] INFO  o.s.m.s.b.SimpleBrokerMessageHandler - Stopping...
+2025-03-13 23:35:58.037 [SpringApplicationShutdownHook] INFO  o.s.m.s.b.SimpleBrokerMessageHandler - BrokerAvailabilityEvent[available=false, SimpleBrokerMessageHandler [org.springframework.messaging.simp.broker.DefaultSubscriptionRegistry@4c3de38e]]
+2025-03-13 23:35:58.037 [SpringApplicationShutdownHook] INFO  o.s.m.s.b.SimpleBrokerMessageHandler - Stopped.
+2025-03-13 23:35:58.045 [SpringApplicationShutdownHook] INFO  o.s.o.j.LocalContainerEntityManagerFactoryBean - Closing JPA EntityManagerFactory for persistence unit 'default'
+2025-03-13 23:35:58.047 [SpringApplicationShutdownHook] INFO  com.zaxxer.hikari.HikariDataSource - HikariPool-1 - Shutdown initiated...
+2025-03-13 23:35:58.051 [SpringApplicationShutdownHook] INFO  com.zaxxer.hikari.HikariDataSource - HikariPool-1 - Shutdown completed.
+2025-03-13 23:36:24.409 [main] INFO  com.trackjobs.TrackJobsApplication - Starting TrackJobsApplication v1.0.0 using Java 21.0.6 on DanielsPC with PID 772804 (/opt/trackjobs/target/trackjobs-1.0.0.jar started by danie in /opt/trackjobs)
+2025-03-13 23:36:24.410 [main] DEBUG com.trackjobs.TrackJobsApplication - Running with Spring Boot v2.7.16, Spring v5.3.30
+2025-03-13 23:36:24.411 [main] INFO  com.trackjobs.TrackJobsApplication - No active profile set, falling back to 1 default profile: "default"
+2025-03-13 23:36:24.902 [main] INFO  o.s.d.r.c.RepositoryConfigurationDelegate - Bootstrapping Spring Data JPA repositories in DEFAULT mode.
+2025-03-13 23:36:24.939 [main] INFO  o.s.d.r.c.RepositoryConfigurationDelegate - Finished Spring Data repository scanning in 32 ms. Found 3 JPA repository interfaces.
+2025-03-13 23:36:25.279 [main] INFO  o.s.b.w.e.tomcat.TomcatWebServer - Tomcat initialized with port(s): 8080 (http)
+2025-03-13 23:36:25.283 [main] INFO  o.a.coyote.http11.Http11NioProtocol - Initializing ProtocolHandler ["http-nio-8080"]
+2025-03-13 23:36:25.285 [main] INFO  o.a.catalina.core.StandardService - Starting service [Tomcat]
+2025-03-13 23:36:25.285 [main] INFO  o.a.catalina.core.StandardEngine - Starting Servlet engine: [Apache Tomcat/9.0.80]
+2025-03-13 23:36:25.320 [main] INFO  o.a.c.c.C.[Tomcat].[localhost].[/] - Initializing Spring embedded WebApplicationContext
+2025-03-13 23:36:25.320 [main] INFO  o.s.b.w.s.c.ServletWebServerApplicationContext - Root WebApplicationContext: initialization completed in 878 ms
+2025-03-13 23:36:25.523 [main] INFO  o.h.jpa.internal.util.LogHelper - HHH000204: Processing PersistenceUnitInfo [name: default]
+2025-03-13 23:36:25.562 [main] INFO  org.hibernate.Version - HHH000412: Hibernate ORM core version 5.6.15.Final
+2025-03-13 23:36:25.648 [main] INFO  o.h.annotations.common.Version - HCANN000001: Hibernate Commons Annotations {5.1.2.Final}
+2025-03-13 23:36:25.700 [main] INFO  com.zaxxer.hikari.HikariDataSource - HikariPool-1 - Starting...
+2025-03-13 23:36:25.782 [main] INFO  com.zaxxer.hikari.HikariDataSource - HikariPool-1 - Start completed.
+2025-03-13 23:36:25.790 [main] INFO  org.hibernate.dialect.Dialect - HHH000400: Using dialect: org.hibernate.dialect.MySQL8Dialect
+2025-03-13 23:36:26.160 [main] INFO  o.h.e.t.j.p.i.JtaPlatformInitiator - HHH000490: Using JtaPlatform implementation: [org.hibernate.engine.transaction.jta.platform.internal.NoJtaPlatform]
+2025-03-13 23:36:26.165 [main] INFO  o.s.o.j.LocalContainerEntityManagerFactoryBean - Initialized JPA EntityManagerFactory for persistence unit 'default'
+2025-03-13 23:36:26.636 [main] INFO  o.s.b.a.e.web.EndpointLinksResolver - Exposing 1 endpoint(s) beneath base path '/actuator'
+2025-03-13 23:36:26.721 [main] INFO  o.s.s.web.DefaultSecurityFilterChain - Will secure any request with [org.springframework.security.web.session.DisableEncodeUrlFilter@5568c66f, org.springframework.security.web.context.request.async.WebAsyncManagerIntegrationFilter@e784320, org.springframework.security.web.context.SecurityContextPersistenceFilter@5a545b0f, org.springframework.security.web.header.HeaderWriterFilter@71ed560f, org.springframework.security.web.csrf.CsrfFilter@4d84049a, org.springframework.security.web.authentication.logout.LogoutFilter@45658133, org.springframework.security.web.authentication.UsernamePasswordAuthenticationFilter@12a470dd, org.springframework.security.web.savedrequest.RequestCacheAwareFilter@124dac75, org.springframework.security.web.servletapi.SecurityContextHolderAwareRequestFilter@315105f, org.springframework.security.web.authentication.AnonymousAuthenticationFilter@3f6bf8aa, org.springframework.security.web.session.SessionManagementFilter@58253c57, org.springframework.security.web.access.ExceptionTranslationFilter@383caf89, org.springframework.security.web.access.intercept.FilterSecurityInterceptor@2ceee4b6]
+2025-03-13 23:36:26.779 [main] WARN  o.s.b.a.o.j.JpaBaseConfiguration$JpaWebConfiguration - spring.jpa.open-in-view is enabled by default. Therefore, database queries may be performed during view rendering. Explicitly configure spring.jpa.open-in-view to disable this warning
+2025-03-13 23:36:26.852 [main] INFO  o.s.b.a.w.s.WelcomePageHandlerMapping - Adding welcome page template: index
+2025-03-13 23:36:26.947 [main] INFO  o.a.coyote.http11.Http11NioProtocol - Starting ProtocolHandler ["http-nio-8080"]
+2025-03-13 23:36:26.954 [main] INFO  o.s.b.w.e.tomcat.TomcatWebServer - Tomcat started on port(s): 8080 (http) with context path ''
+2025-03-13 23:36:26.956 [main] INFO  o.s.m.s.b.SimpleBrokerMessageHandler - Starting...
+2025-03-13 23:36:26.956 [main] INFO  o.s.m.s.b.SimpleBrokerMessageHandler - BrokerAvailabilityEvent[available=true, SimpleBrokerMessageHandler [org.springframework.messaging.simp.broker.DefaultSubscriptionRegistry@43f03c23]]
+2025-03-13 23:36:26.956 [main] INFO  o.s.m.s.b.SimpleBrokerMessageHandler - Started.
+2025-03-13 23:36:26.965 [main] INFO  com.trackjobs.TrackJobsApplication - Started TrackJobsApplication in 2.786 seconds (JVM running for 3.132)
+2025-03-13 23:36:31.050 [http-nio-8080-exec-1] INFO  o.a.c.c.C.[Tomcat].[localhost].[/] - Initializing Spring DispatcherServlet 'dispatcherServlet'
+2025-03-13 23:36:31.050 [http-nio-8080-exec-1] INFO  o.s.web.servlet.DispatcherServlet - Initializing Servlet 'dispatcherServlet'
+2025-03-13 23:36:31.051 [http-nio-8080-exec-1] INFO  o.s.web.servlet.DispatcherServlet - Completed initialization in 1 ms
+2025-03-13 23:36:33.040 [http-nio-8080-exec-5] DEBUG com.trackjobs.service.UserService - Getting user for authenticated username: daniel ivanov
+2025-03-13 23:36:33.042 [http-nio-8080-exec-5] DEBUG com.trackjobs.service.UserService - Found user: ID=1, username=daniel ivanov
+2025-03-13 23:36:33.267 [http-nio-8080-exec-8] DEBUG com.trackjobs.service.UserService - Getting user for authenticated username: daniel ivanov
+2025-03-13 23:36:33.269 [http-nio-8080-exec-8] DEBUG com.trackjobs.service.UserService - Found user: ID=1, username=daniel ivanov
+2025-03-13 23:36:40.717 [http-nio-8080-exec-9] DEBUG com.trackjobs.service.UserService - Getting user for authenticated username: daniel ivanov
+2025-03-13 23:36:40.719 [http-nio-8080-exec-9] DEBUG com.trackjobs.service.UserService - Found user: ID=1, username=daniel ivanov
+2025-03-13 23:36:49.874 [http-nio-8080-exec-10] INFO  c.trackjobs.controller.JobController - New scraping request - Keywords: 'Accountant', Location: 'Seattle', Pages: 1
+2025-03-13 23:36:49.874 [http-nio-8080-exec-10] INFO  c.trackjobs.controller.JobController - Advanced filters - Title include: [], Title exclude: [], Company exclude: [], Description exclude: []
+2025-03-13 23:36:49.875 [http-nio-8080-exec-10] DEBUG com.trackjobs.service.UserService - Getting user for authenticated username: daniel ivanov
+2025-03-13 23:36:49.877 [http-nio-8080-exec-10] DEBUG com.trackjobs.service.UserService - Found user: ID=1, username=daniel ivanov
+2025-03-13 23:36:49.877 [http-nio-8080-exec-10] INFO  com.trackjobs.service.JobService - Scraping jobs for user: daniel ivanov (ID: 1)
+2025-03-13 23:37:26.762 [MessageBroker-1] INFO  o.s.w.s.c.WebSocketMessageBrokerStats - WebSocketSession[0 current WS(0)-HttpStream(0)-HttpPoll(0), 0 total, 0 closed abnormally (0 connect failure, 0 send limit, 0 transport error)], stompSubProtocol[processed CONNECT(0)-CONNECTED(0)-DISCONNECT(0)], stompBrokerRelay[null], inboundChannel[pool size = 0, active threads = 0, queued tasks = 0, completed tasks = 0], outboundChannel[pool size = 0, active threads = 0, queued tasks = 0, completed tasks = 0], sockJsScheduler[pool size = 2, active threads = 1, queued tasks = 1, completed tasks = 0]

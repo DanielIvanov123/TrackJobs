@@ -9,6 +9,7 @@ import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestParam;
+import org.springframework.web.servlet.mvc.support.RedirectAttributes;
 
 @Controller
 @RequiredArgsConstructor
@@ -63,6 +64,22 @@ public class AuthController {
             log.error("Error registering user: {}", e.getMessage(), e);
             model.addAttribute("error", "Registration failed: " + e.getMessage());
             return "register";
+        }
+    }
+
+    /**
+     * Endpoint to wipe all user data
+     */
+    @PostMapping("/wipe-user-data")
+    public String wipeUserData(RedirectAttributes redirectAttributes) {
+        try {
+            userService.wipeUserData();
+            redirectAttributes.addFlashAttribute("message", "All your data has been successfully deleted.");
+            return "redirect:/";
+        } catch (Exception e) {
+            log.error("Error wiping user data: {}", e.getMessage(), e);
+            redirectAttributes.addFlashAttribute("error", "Error deleting your data: " + e.getMessage());
+            return "redirect:/";
         }
     }
 }

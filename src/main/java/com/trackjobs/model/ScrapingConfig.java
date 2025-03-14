@@ -28,7 +28,6 @@ public class ScrapingConfig {
     private List<String> companyExcludeWords;
     private List<String> descriptionExcludeWords;
     private List<String> experienceLevelInclude;
-    private List<String> experienceLevelExclude;
     
     // User who initiated the scrape
     private User user;

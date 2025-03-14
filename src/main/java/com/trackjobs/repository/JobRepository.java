@@ -51,4 +51,6 @@ public interface JobRepository extends JpaRepository<Job, Long> {
     // Find most recent scrape date for a user
     @Query("SELECT MAX(j.dateScraped) FROM Job j WHERE j.user = :user")
     Optional<LocalDate> findMostRecentScrapeDateByUser(@Param("user") User user);
+
+    void deleteByUser(User user);
 }

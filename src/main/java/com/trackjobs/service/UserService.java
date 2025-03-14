@@ -1,9 +1,12 @@
 package com.trackjobs.service;
 
 import com.trackjobs.model.User;
+import com.trackjobs.repository.JobRepository;
 import com.trackjobs.repository.UserRepository;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import com.trackjobs.repository.ScraperConfigRepository;
+
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.crypto.password.PasswordEncoder;
@@ -20,6 +23,8 @@ public class UserService {
 
     private final UserRepository userRepository;
     private final PasswordEncoder passwordEncoder;
+    private final JobRepository jobRepository;
+    private final ScraperConfigRepository scraperConfigRepository;
 
     /**
      * Find a user by username
@@ -100,4 +105,27 @@ public class UserService {
         
         return user;
     }
+    /**
+     * Wipe all data for the current authenticated user
+     * This is a destructive operation that removes all user data but keeps the account
+     */
+    @Transactional
+    public void wipeUserData() {
+        User currentUser = getCurrentUser();
+        if (currentUser == null) {
+            throw new IllegalStateException("You must be logged in to perform this operation");
+        }
+        
+        log.warn("Wiping all data for user: {} (ID: {})", currentUser.getUsername(), currentUser.getId());
+        
+        // Delete all saved scraper configurations
+        scraperConfigRepository.deleteByUser(currentUser);
+        log.info("Deleted all scraper configurations for user: {}", currentUser.getUsername());
+        
+        // Delete all jobs
+        jobRepository.deleteByUser(currentUser);
+        log.info("Deleted all jobs for user: {}", currentUser.getUsername());
+        
+        log.warn("User data wipe completed for: {}", currentUser.getUsername());
+}
 }
