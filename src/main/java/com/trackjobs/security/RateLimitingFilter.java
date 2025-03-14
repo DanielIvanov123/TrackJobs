@@ -22,11 +22,26 @@ public class RateLimitingFilter implements Filter {
     // Maximum number of requests allowed in the time window
     private static final int MAX_REQUESTS_PER_MINUTE = 60;
     
+    // Higher limit for scrape progress endpoint
+    private static final int MAX_PROGRESS_REQUESTS_PER_MINUTE = 1000;
+    
     // Cache to store request counts per IP
     private LoadingCache<String, Integer> requestCounts;
     
+    // Cache to store requests for progress endpoints
+    private LoadingCache<String, Integer> progressRequestCounts;
+    
     public RateLimitingFilter() {
         requestCounts = CacheBuilder.newBuilder()
+                .expireAfterWrite(1, TimeUnit.MINUTES)
+                .build(new CacheLoader<String, Integer>() {
+                    @Override
+                    public Integer load(String key) {
+                        return 0;
+                    }
+                });
+                
+        progressRequestCounts = CacheBuilder.newBuilder()
                 .expireAfterWrite(1, TimeUnit.MINUTES)
                 .build(new CacheLoader<String, Integer>() {
                     @Override
@@ -45,11 +60,19 @@ public class RateLimitingFilter implements Filter {
         // Get client IP address
         String clientIP = getClientIP(httpRequest);
         
+        // Get request path to check if it's a progress endpoint
+        String requestPath = httpRequest.getRequestURI();
+        boolean isProgressEndpoint = requestPath.contains("/api/jobs/scrape/progress");
+        
+        // Choose the appropriate cache and limit
+        LoadingCache<String, Integer> cache = isProgressEndpoint ? progressRequestCounts : requestCounts;
+        int maxRequests = isProgressEndpoint ? MAX_PROGRESS_REQUESTS_PER_MINUTE : MAX_REQUESTS_PER_MINUTE;
+        
         // Try to increment request count
         int requests;
         try {
-            requests = requestCounts.get(clientIP);
-            if (requests >= MAX_REQUESTS_PER_MINUTE) {
+            requests = cache.get(clientIP);
+            if (requests >= maxRequests) {
                 // Too many requests
                 httpResponse.setStatus(HttpStatus.TOO_MANY_REQUESTS.value());
                 httpResponse.getWriter().write("Too many requests. Please try again later.");
@@ -57,7 +80,7 @@ public class RateLimitingFilter implements Filter {
             }
             
             // Increment the count
-            requestCounts.put(clientIP, requests + 1);
+            cache.put(clientIP, requests + 1);
             
         } catch (ExecutionException e) {
             // Log the error and allow the request

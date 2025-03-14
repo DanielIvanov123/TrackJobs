@@ -422,7 +422,7 @@ document.addEventListener('DOMContentLoaded', function() {
         // Get CSRF token from meta tag
         const csrfToken = document.querySelector('meta[name="_csrf"]').getAttribute('content');
         const csrfHeader = document.querySelector('meta[name="_csrf_header"]').getAttribute('content');
-
+    
         // Get form values
         const keywords = keywordsInput.value.trim();
         const location = locationInput.value.trim();
@@ -462,7 +462,7 @@ document.addEventListener('DOMContentLoaded', function() {
         };
         
         console.log('Scraper payload:', payload);
-
+    
         // Reset and show loading UI
         if (progressBar) {
             progressBar.style.width = '0%';
@@ -474,11 +474,28 @@ document.addEventListener('DOMContentLoaded', function() {
             statusUpdatesList.innerHTML = '';
             addStatusUpdate('Initializing scrape for "' + keywords + '" in "' + location + '"');
         }
+    
+        if (experienceLevelProgress) {
+            experienceLevelProgress.textContent = 'Preparing...';
+        }
+    
+        if (pageProgress) {
+            pageProgress.textContent = 'Pages: 0/0';
+        }
         
         loadingIndicator.style.display = 'block';
         scrapeButton.disabled = true;
         
-        simulateDetailedProgress(experienceLevels.include);
+        // Define polling variables
+        let pollInterval = null;
+        const connectionTimeout = setTimeout(() => {
+            if (pollInterval) {
+                clearInterval(pollInterval);
+            }
+            addStatusUpdate('Connection timeout. Scraping may still be running in the background.');
+            showAlert('Connection timeout. The scrape is still running in the background.', 'warning');
+            hideLoadingIndicator();
+        }, 3 * 60 * 1000); // 3 minute timeout
         
         // Send scrape request
         fetch('/api/jobs/scrape', {
@@ -490,9 +507,6 @@ document.addEventListener('DOMContentLoaded', function() {
             body: JSON.stringify(payload)
         })
         .then(response => {
-            clearTimeout(connectionTimeout);
-            clearInterval(fallbackInterval);
-            
             if (!response.ok) {
                 throw new Error(`HTTP error ${response.status}`);
             }
@@ -500,19 +514,28 @@ document.addEventListener('DOMContentLoaded', function() {
         })
         .then(data => {
             if (data.success) {
-                window.scrapeResults = data;
+                // Start polling for progress with the scrapeId
+                const scrapeId = data.scrapeId;
+                addStatusUpdate('Scrape started successfully. ID: ' + scrapeId);
+                
+                // Clear any existing interval
+                if (window.pollInterval) {
+                    clearInterval(window.pollInterval);
+                }
+                
+                // Poll for progress updates every 1 second
+                window.pollInterval = setInterval(() => {
+                    pollScrapeProgress(scrapeId, csrfToken, csrfHeader, connectionTimeout);
+                }, 1000);
             } else {
-                stopProgressSimulation();
+                clearTimeout(connectionTimeout);
                 addStatusUpdate(`Error: ${data.message}`);
                 showAlert(`Error: ${data.message}`, 'danger');
                 hideLoadingIndicator();
             }
         })
         .catch(error => {
-            // Clear the fallback progress updates
             clearTimeout(connectionTimeout);
-            clearInterval(fallbackInterval);
-            
             console.error('Error:', error);
             addStatusUpdate(`Error: ${error.message}`);
             showAlert(`Error: ${error.message}`, 'danger');
@@ -520,150 +543,110 @@ document.addEventListener('DOMContentLoaded', function() {
         });
     }
 
-    function trackScrapeProgress(initialData, totalExperienceLevels) {
-        // Calculate total expected progress steps
-        const totalSteps = totalExperienceLevels * 4; // 4 steps per experience level
-        let currentStep = 0;
-        
-        // If we have jobs already, update the UI with what we have
-        if (initialData.jobs && initialData.jobs.length > 0) {
-            addStatusUpdate(`Found ${initialData.jobs.length} jobs in initial response!`);
-            displayRecentScrapedJobs(initialData.jobs);
-            
-            // Complete the progress bar
-            updateProgress(100);
-            hideLoadingIndicator();
-            return;
-        }
-        
-        // Otherwise, simulate the progress for the background scraping
-        const progressInterval = setInterval(() => {
-            currentStep++;
-            
-            // Calculate percent complete (cap at 95% to leave room for final update)
-            const percentComplete = Math.min(95, Math.floor(currentStep * 95 / totalSteps));
-            updateProgress(percentComplete);
-            
-            // Add appropriate status updates
-            if (currentStep % 4 === 1) {
-                const expLevel = Math.floor(currentStep / 4) + 1;
-                addStatusUpdate(`Searching LinkedIn for experience level ${expLevel}/${totalExperienceLevels}...`);
-            } else if (currentStep % 4 === 2) {
-                addStatusUpdate('Processing job listings...');
-            } else if (currentStep % 4 === 3) {
-                addStatusUpdate('Extracting job details...');
-            }
-            
-            // Check if we're done
-            if (currentStep >= totalSteps) {
-                clearInterval(progressInterval);
-                
-                // After a short delay, try to fetch the final results
-                setTimeout(() => {
-                    fetchFinalResults();
-                }, 2000);
-            }
-        }, 2000); // Update every 2 seconds
-        
-        // Add a function to fetch the final results
-        function fetchFinalResults() {
-            addStatusUpdate('Finalizing results...');
-            
-            // Search for recent jobs as our "final results"
-            fetch('/api/jobs/search?daysOld=1', {
-                headers: {
-                    [csrfHeader]: csrfToken
-                }
-            })
-            .then(response => response.json())
-            .then(jobs => {
-                if (jobs.length > 0) {
-                    addStatusUpdate(`Scraping completed! Found ${jobs.length} jobs.`);
-                    displayRecentScrapedJobs(jobs);
-                } else {
-                    addStatusUpdate('Scraping completed, but no new jobs were found. They may still be processing.');
-                }
-                
-                // Complete the progress
-                updateProgress(100);
-                hideLoadingIndicator();
-            })
-            .catch(error => {
-                console.error('Error fetching final results:', error);
-                addStatusUpdate('Scraping completed, but there was an error retrieving the results.');
-                
-                // Complete the progress anyway
-                updateProgress(100);
-                hideLoadingIndicator();
-            });
-        }
-    }
-
-    // Helper function to hide the loading indicator and re-enable the button
-    function hideLoadingIndicator() {
-        loadingIndicator.style.display = 'none';
-        scrapeButton.disabled = false;
-    }
-    
     /**
      * Poll for scrape progress updates
      */
-    function pollScrapeProgress(scrapeId, csrfToken, csrfHeader) {
-        const pollInterval = setInterval(() => {
-            fetch(`/api/jobs/scrape/progress?scrapeId=${scrapeId}`, {
-                headers: {
-                    [csrfHeader]: csrfToken
+    function pollScrapeProgress(scrapeId, csrfToken, csrfHeader, connectionTimeout) {
+        fetch(`/api/jobs/scrape/progress?scrapeId=${scrapeId}`, {
+            headers: {
+                [csrfHeader]: csrfToken
+            }
+        })
+        .then(response => {
+            if (!response.ok) {
+                throw new Error(`HTTP error ${response.status}`);
+            }
+            return response.json();
+        })
+        .then(progress => {
+            console.log('Progress update:', progress);
+            
+            // Update the progress bar
+            updateProgress(progress.percentComplete);
+            
+            // Update progress text
+            if (progressBarText) {
+                progressBarText.textContent = progress.status;
+            }
+            
+            // Add status updates for significant events
+            // Avoid spamming with too many similar updates by checking if it's different from last status
+            const lastStatusUpdate = document.querySelector('#statusUpdatesList li:last-child');
+            if (progress.status && 
+                (!lastStatusUpdate || !lastStatusUpdate.textContent.includes(progress.status))) {
+                addStatusUpdate(progress.status);
+            }
+            
+            // Add experience level information if available
+            if (progress.currentExperienceLevel && progress.totalExperienceLevels > 0) {
+                const expText = `Experience level ${progress.experienceLevelIndex + 1}/${progress.totalExperienceLevels}: ${progress.currentExperienceLevel}`;
+                if (experienceLevelProgress) {
+                    experienceLevelProgress.textContent = expText;
                 }
-            })
-            .then(response => response.json())
-            .then(progress => {
-                // Update the progress bar
-                updateProgress(progress.percentComplete);
+            }
+            
+            // Update page progress
+            if (pageProgress && progress.totalPages > 0) {
+                pageProgress.textContent = `Pages: ${progress.currentPage}/${progress.totalPages}`;
+            }
+            
+            // Special error case (marked with negative progress)
+            if (progress.percentComplete < 0) {
+                clearInterval(window.pollInterval);
+                clearTimeout(connectionTimeout);
                 
-                // Update progress text
-                if (progressBarText) {
-                    progressBarText.textContent = progress.status;
-                }
+                addStatusUpdate(`Error: ${progress.status}`);
+                showAlert(`Error: ${progress.status}`, 'danger');
+                hideLoadingIndicator();
+                return;
+            }
+            
+            // If scraping is complete (100%), stop polling and load results
+            if (progress.percentComplete >= 100) {
+                clearInterval(window.pollInterval);
+                clearTimeout(connectionTimeout);
                 
-                // Add status updates for significant events
-                if (progress.status && !progress.status.startsWith('Scraping page')) {
-                    addStatusUpdate(progress.status);
-                }
+                addStatusUpdate('Scraping completed successfully!');
+
+                fetchRecentlyScrapedJobs(csrfToken, csrfHeader);
                 
-                // Add experience level information if available
-                if (progress.currentExperienceLevel && progress.totalExperienceLevels > 0) {
-                    const expText = `Experience level ${progress.experienceLevelIndex}/${progress.totalExperienceLevels}: ${progress.currentExperienceLevel}`;
-                    if (experienceLevelProgress) {
-                        experienceLevelProgress.textContent = expText;
+                // Also update the main search results if on search tab
+                setTimeout(() => {
+                    if (document.getElementById('searchTabContent').style.display !== 'none') {
+                        searchJobs();
                     }
+                    hideLoadingIndicator();
+                    showAlert('Scraping completed successfully!', 'success');
+                }, 1000);
+                return;
                 }
-                
-                // Update page progress
-                if (pageProgress && progress.currentPage > 0) {
-                    pageProgress.textContent = `Pages: ${progress.currentPage}/${progress.totalPages}`;
-                }
-                
-                // If scraping is complete (100%), stop polling and load results
-                if (progress.percentComplete >= 100) {
-                    clearInterval(pollInterval);
-                    
-                    // Delay a bit before fetching the final results
-                    setTimeout(() => {
-                        fetchScrapingResults(scrapeId, csrfToken, csrfHeader);
-                    }, 1000);
-                }
-            })
-            .catch(error => {
-                console.error('Error polling for progress:', error);
-                clearInterval(pollInterval);
-                
-                addStatusUpdate(`Error tracking progress: ${error.message}`);
-                showAlert(`Error tracking progress: ${error.message}`, 'danger');
-                
-                loadingIndicator.style.display = 'none';
-                scrapeButton.disabled = false;
-            });
-        }, 1000); // Poll every second
+        })
+        .catch(error => {
+            console.error('Error polling for progress:', error);
+            
+            // Don't automatically stop on the first error, might just be a temporary issue
+            // Instead, add warning but continue polling
+            addStatusUpdate(`Warning: Progress update failed: ${error.message}`);
+        });
+    }
+
+    
+    /**
+     * Helper function to hide the loading indicator and re-enable the button
+     */
+    function hideLoadingIndicator() {
+        if (loadingIndicator) {
+            loadingIndicator.style.display = 'none';
+        }
+        if (scrapeButton) {
+            scrapeButton.disabled = false;
+        }
+        
+        // Clear any existing polling interval
+        if (window.pollInterval) {
+            clearInterval(window.pollInterval);
+            window.pollInterval = null;
+        }
     }
     
     /**
@@ -1032,8 +1015,31 @@ document.addEventListener('DOMContentLoaded', function() {
     function updateProgress(percent) {
         if (!progressBar || !progressBarText) return;
         
+        // Handle error case (negative percent)
+        if (percent < 0) {
+            progressBar.style.width = '100%';
+            progressBar.setAttribute('aria-valuenow', 100);
+            progressBar.classList.remove('bg-success', 'bg-info', 'bg-warning');
+            progressBar.classList.add('bg-danger');
+            return;
+        }
+        
+        // Normal progress update
         progressBar.style.width = `${percent}%`;
         progressBar.setAttribute('aria-valuenow', percent);
+        
+        // Update progress bar color based on completion
+        progressBar.classList.remove('bg-danger');
+        if (percent < 30) {
+            progressBar.classList.add('bg-info');
+            progressBar.classList.remove('bg-warning', 'bg-success');
+        } else if (percent < 70) {
+            progressBar.classList.add('bg-warning');
+            progressBar.classList.remove('bg-info', 'bg-success');
+        } else {
+            progressBar.classList.add('bg-success');
+            progressBar.classList.remove('bg-info', 'bg-warning');
+        }
     }
     
     /**
@@ -1049,6 +1055,10 @@ document.addEventListener('DOMContentLoaded', function() {
         // Highlight experience level updates
         if (message.includes('experience level')) {
             listItem.className += ' list-group-item-info';
+        } else if (message.includes('Error') || message.includes('error')) {
+            listItem.className += ' list-group-item-danger';
+        } else if (message.includes('completed successfully')) {
+            listItem.className += ' list-group-item-success';
         }
         
         listItem.innerHTML = `<span class="text-muted">[${timestamp}]</span> ${message}`;
@@ -1057,6 +1067,13 @@ document.addEventListener('DOMContentLoaded', function() {
         
         // Auto-scroll to bottom
         statusUpdatesList.scrollTop = statusUpdatesList.scrollHeight;
+    }
+
+    // Helper function to check if text contains a string (for status update filtering)
+    if (typeof jQuery !== 'undefined') {
+        jQuery.expr[':'].contains = function(a, i, m) {
+            return jQuery(a).text().toUpperCase().indexOf(m[3].toUpperCase()) >= 0;
+        };
     }
     
     /**
@@ -1309,219 +1326,124 @@ document.addEventListener('DOMContentLoaded', function() {
             confirmDeleteBtn: !!confirmDeleteBtn
         });
     }
-
-    // Add a detailed progress simulation
-    function simulateDetailedProgress(experienceLevels) {
-        // Stop any existing simulation
-        stopProgressSimulation();
+    /**
+     * Fetch and display recently scraped jobs
+     */
+    function fetchRecentlyScrapedJobs(csrfToken, csrfHeader) {
+        addStatusUpdate('Fetching recently scraped jobs...');
         
-        // Calculate total steps based on experience levels
-        const expLevelsCount = experienceLevels.length || 1;
-        
-        let currentExpLevel = 0;
-        let currentPage = 0;
-        let currentJob = 0;
-        let jobsPerPage = 5 + Math.floor(Math.random() * 20); // 5-25 jobs per page
-        let maxPages = Math.min(5, parseInt(document.getElementById('pagesToScrape')?.value || '1'));
-        let totalProgress = 0;
-        
-        updateProgress(2);
-        addStatusUpdate('Connecting to LinkedIn...');
-        
-        // Store simulation state
-        window.progressSimulation = {
-            running: true,
-            expLevels: experienceLevels,
-            currentExpLevel,
-            currentPage,
-            currentJob,
-            jobsPerPage,
-            maxPages,
-            startTime: Date.now()
-        };
-        
-        // Initial connecting stage (0-10%)
-        let connectingInterval = setInterval(() => {
-            totalProgress += 2;
-            if (totalProgress >= 10) {
-                clearInterval(connectingInterval);
-                addStatusUpdate('Connected to LinkedIn successfully!');
-                
-                // Begin experience level iterations
-                simulateExperienceLevelScraping();
-            } else {
-                updateProgress(totalProgress);
+        // Use the search API with "recent" flag to get the most recently scraped jobs
+        fetch('/api/jobs/search?daysOld=1', {
+            headers: {
+                [csrfHeader]: csrfToken
             }
-        }, 800);
-        
-        // Function to simulate scraping each experience level
-        function simulateExperienceLevelScraping() {
-            if (!window.progressSimulation?.running) return;
-            
-            const state = window.progressSimulation;
-            
-            // Calculate progress percentage
-            const expLevelProgressBase = 10; // 10% for connecting
-            const expLevelProgressPortion = 80 / expLevelsCount; // 80% for actual scraping
-            
-            // Update experience level indicator
-            const currentExpName = state.expLevels[state.currentExpLevel] || "Not specified";
-            document.getElementById('experienceLevelProgress').textContent = 
-                `Experience level: ${state.currentExpLevel + 1}/${expLevelsCount} - ${currentExpName}`;
-            
-            addStatusUpdate(`Starting search for experience level: ${currentExpName}`);
-            
-            // Simulate scraping pages for this experience level
-            simulatePageScraping(state.currentExpLevel, expLevelProgressBase, expLevelProgressPortion);
-        }
-        
-        // Function to simulate scraping pages
-        function simulatePageScraping(expLevelIndex, progressBase, progressPortion) {
-            if (!window.progressSimulation?.running) return;
-            
-            const state = window.progressSimulation;
-            state.currentPage = 0;
-            
-            const pageInterval = setInterval(() => {
-                if (!state.running) {
-                    clearInterval(pageInterval);
-                    return;
-                }
-                
-                // Calculate progress for this page
-                const pageProgressPortion = progressPortion / state.maxPages;
-                const baseForThisPage = progressBase + (expLevelIndex * progressPortion) + (state.currentPage * pageProgressPortion);
-                
-                addStatusUpdate(`Scraping page ${state.currentPage + 1} of ${state.maxPages} for ${state.expLevels[expLevelIndex] || "Not specified"}`);
-                
-                // Simulate finding jobs on this page
-                simulateJobFinding(expLevelIndex, state.currentPage, baseForThisPage, pageProgressPortion);
-                
-                state.currentPage++;
-                
-                // Move to next experience level when all pages are done
-                if (state.currentPage >= state.maxPages) {
-                    clearInterval(pageInterval);
-                    
-                    // Move to next experience level
-                    state.currentExpLevel++;
-                    
-                    if (state.currentExpLevel < expLevelsCount) {
-                        // Start next experience level
-                        setTimeout(simulateExperienceLevelScraping, 1000);
-                    } else {
-                        // All experience levels completed
-                        const finalProcessingBase = progressBase + (expLevelsCount * progressPortion);
-                        simulateFinalProcessing(finalProcessingBase);
-                    }
-                }
-            }, 3000); // 3 seconds per page
-        }
-        
-        // Function to simulate finding and processing jobs
-        function simulateJobFinding(expLevelIndex, pageIndex, baseProgress, pageProgressPortion) {
-            if (!window.progressSimulation?.running) return;
-            
-            const state = window.progressSimulation;
-            
-            // Randomize jobs per page a bit
-            state.jobsPerPage = 5 + Math.floor(Math.random() * 20);
-            state.currentJob = 0;
-            
-            addStatusUpdate(`Found ${state.jobsPerPage} jobs on page ${pageIndex + 1}`);
-            updateProgress(Math.floor(baseProgress + (pageProgressPortion * 0.2)));
-            
-            // Simulate job detail scraping (if enabled)
-            const detailInterval = setInterval(() => {
-                if (!state.running) {
-                    clearInterval(detailInterval);
-                    return;
-                }
-                
-                // Calculate progress for this job
-                const jobProgressPortion = pageProgressPortion * 0.8 / state.jobsPerPage;
-                const progressForThisJob = baseProgress + (pageProgressPortion * 0.2) + (state.currentJob * jobProgressPortion);
-                
-                // Update progress and task indicator
-                updateProgress(Math.floor(progressForThisJob));
-                document.getElementById('taskProgress').textContent = 
-                    `Getting job details: ${state.currentJob + 1}/${state.jobsPerPage}`;
-                
-                // Update status text (not as status update to avoid spam)
-                if (progressBarText) {
-                    progressBarText.textContent = `Scraping job ${state.currentJob + 1}/${state.jobsPerPage} on page ${pageIndex + 1}`;
-                }
-                
-                state.currentJob++;
-                
-                // All jobs on this page processed
-                if (state.currentJob >= state.jobsPerPage) {
-                    clearInterval(detailInterval);
-                    updateProgress(Math.floor(baseProgress + pageProgressPortion));
-                    addStatusUpdate(`Completed job detail scraping for ${state.jobsPerPage} jobs on page ${pageIndex + 1}`);
-                }
-            }, 500); // 0.5 seconds per job (adjust based on your scraping speed)
-        }
-        
-        // Function to simulate final processing
-        function simulateFinalProcessing(baseProgress) {
-            if (!window.progressSimulation?.running) return;
-            
-            updateProgress(90);
-            addStatusUpdate('Filtering and saving jobs to database...');
-            
-            setTimeout(() => {
-                if (!window.progressSimulation?.running) return;
-                
-                updateProgress(95);
-                addStatusUpdate('Finalizing results...');
-                
-                setTimeout(() => {
-                    if (!window.progressSimulation?.running) return;
-                    
-                    updateProgress(100);
-                    addStatusUpdate('Scraping completed successfully!');
-                    
-                    // Display results if available
-                    if (window.scrapeResults) {
-                        const data = window.scrapeResults;
-                        addStatusUpdate(`Found ${data.jobsFound} jobs after filtering from ${data.totalJobsScraped} total jobs scraped.`);
-                        
-                        if (data.totalJobsScraped > data.jobsFound) {
-                            addStatusUpdate(`Filtered out ${data.totalJobsScraped - data.jobsFound} jobs based on your criteria.`);
-                        }
-                        
-                        if (data.duplicatesSkipped > 0) {
-                            addStatusUpdate(`Skipped ${data.duplicatesSkipped} duplicate jobs already in the database.`);
-                        }
-                        
-                        showAlert(`Successfully scraped ${data.jobsFound} jobs!`, 'success');
-                        
-                        // Display the recently scraped jobs
-                        if (data.jobs && data.jobs.length > 0) {
-                            displayRecentScrapedJobs(data.jobs);
-                        } else {
-                            showNoRecentJobsMessage();
-                        }
-                    } else {
-                        addStatusUpdate('Scraping completed but no results data available.');
-                    }
-                    
-                    // Hide loading indicator and clean up
-                    hideLoadingIndicator();
-                    window.progressSimulation = null;
-                    window.scrapeResults = null;
-                    
-                }, 1500);
-            }, 2000);
-        }
+        })
+        .then(response => {
+            if (!response.ok) {
+                throw new Error(`HTTP error ${response.status}`);
+            }
+            return response.json();
+        })
+        .then(jobs => {
+            // Display the recent jobs in the recent jobs container
+            displayRecentScrapedJobs(jobs);
+            addStatusUpdate(`Found ${jobs.length} recently scraped jobs.`);
+        })
+        .catch(error => {
+            console.error('Error fetching recent jobs:', error);
+            addStatusUpdate(`Error fetching recent jobs: ${error.message}`);
+        });
     }
 
-    // Function to stop progress simulation
-    function stopProgressSimulation() {
-        if (window.progressSimulation) {
-            window.progressSimulation.running = false;
-            window.progressSimulation = null;
+    /**
+     * Display recently scraped jobs
+     */
+    function displayRecentScrapedJobs(jobs) {
+        const recentScrapedJobsContainer = document.getElementById('recentScrapedJobs');
+        if (!recentScrapedJobsContainer) return;
+        
+        // Clear container
+        recentScrapedJobsContainer.innerHTML = '';
+        
+        if (!jobs || jobs.length === 0) {
+            recentScrapedJobsContainer.innerHTML = `
+                <div class="col-12 text-center">
+                    <p class="text-muted">No recently scraped jobs to display</p>
+                </div>
+            `;
+            return;
         }
+        
+        // Create a row for the jobs
+        const row = document.createElement('div');
+        row.className = 'row';
+        
+        // Create a card for each job (limit to 3)
+        const maxJobsToShow = Math.min(jobs.length, 3);
+        for (let i = 0; i < maxJobsToShow; i++) {
+            const job = jobs[i];
+            const jobCard = document.createElement('div');
+            jobCard.className = 'col-md-4 mb-4';
+            jobCard.innerHTML = `
+                <div class="card h-100 job-card">
+                    <div class="card-body">
+                        <h5 class="card-title">${escapeHtml(job.title)}</h5>
+                        <h6 class="card-subtitle mb-2 text-muted">${escapeHtml(job.company)}</h6>
+                        <p class="card-text">
+                            <i class="bi bi-geo-alt-fill"></i> ${escapeHtml(job.location)}<br>
+                            <i class="bi bi-calendar"></i> ${formatDate(job.datePosted)}<br>
+                            <i class="bi bi-briefcase-fill"></i> ${escapeHtml(job.experienceLevel || 'Not specified')}
+                        </p>
+                    </div>
+                    <div class="card-footer bg-transparent">
+                        ${job.url ? `
+                            <a href="${escapeHtml(job.url)}" target="_blank" class="btn btn-sm btn-outline-primary w-100">
+                                <i class="bi bi-linkedin me-2"></i>View on LinkedIn
+                            </a>
+                        ` : `
+                            <button class="btn btn-sm btn-outline-secondary w-100" disabled>
+                                No URL Available
+                            </button>
+                        `}
+                    </div>
+                </div>
+            `;
+            
+            row.appendChild(jobCard);
+        }
+        
+        // Add view all button if needed
+        if (jobs.length > 3) {
+            const viewAllDiv = document.createElement('div');
+            viewAllDiv.className = 'col-12 text-center mt-3';
+            viewAllDiv.innerHTML = `
+                <button class="btn btn-outline-primary" id="viewAllJobsBtn">
+                    <i class="bi bi-list me-2"></i>View All ${jobs.length} Jobs
+                </button>
+            `;
+            row.appendChild(viewAllDiv);
+            
+            // Add event listener
+            setTimeout(() => {
+                const viewAllBtn = document.getElementById('viewAllJobsBtn');
+                if (viewAllBtn) {
+                    viewAllBtn.addEventListener('click', function() {
+                        // Switch to search tab
+                        if (searchTabLink && typeof showSearchTab === 'function') {
+                            showSearchTab();
+                        } else {
+                            // Fallback if the function isn't available
+                            document.getElementById('searchTabLink')?.click();
+                        }
+                        
+                        // Trigger a search
+                        setTimeout(searchJobs, 500);
+                    });
+                }
+            }, 100);
+        }
+        
+        recentScrapedJobsContainer.appendChild(row);
     }
+    
 });

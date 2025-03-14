@@ -1,10 +1,12 @@
 package com.trackjobs.controller;
 
 import com.trackjobs.model.Job;
+import com.trackjobs.service.UserService;
 import com.trackjobs.model.ScrapingConfig;
 import com.trackjobs.service.JobService;
 import com.trackjobs.model.SavedScraperConfig;
 import com.trackjobs.service.ScraperConfigService;
+import com.trackjobs.service.LinkedInScraperService;
 import lombok.extern.slf4j.Slf4j;
 import com.trackjobs.model.ScrapingProgress;
 import com.trackjobs.model.User;
@@ -38,6 +40,12 @@ public class JobController {
 
     @Autowired
     private ScraperConfigService scraperConfigService;
+    
+    @Autowired
+    private LinkedInScraperService linkedInScraperService;
+
+    @Autowired
+    private UserService userService;
     
     /**
      * Main page - display job listings
@@ -128,6 +136,10 @@ public class JobController {
             log.info("Advanced filters - Title include: {}, Title exclude: {}, Company exclude: {}, Description exclude: {}", 
                     titleIncludeWords, titleExcludeWords, companyExcludeWords, descriptionExcludeWords);
             
+            // Generate a unique scrape ID for tracking progress
+            String scrapeId = UUID.randomUUID().toString();
+            log.info("Generated scrape ID for progress tracking: {}", scrapeId);
+            
             // Create scraping configuration
             ScrapingConfig config = ScrapingConfig.builder()
                 .keywords(keywords)
@@ -144,36 +156,34 @@ public class JobController {
                 .experienceLevelInclude(experienceLevelInclude)
                 .build();
             
-            // Run the scrape
-            List<Job> scrapedJobs = jobService.scrapeLinkedInJobs(config);
+            // Get the current user before launching the async thread
+            User currentUser = userService.getCurrentUser();
+            if (currentUser == null) {
+                return ResponseEntity.badRequest().body(Map.of(
+                    "success", false,
+                    "message", "You must be logged in to scrape jobs"
+                ));
+            }
             
-            // Calculate runtime
-            LocalDateTime endTime = LocalDateTime.now();
-            Duration duration = Duration.between(startTime, endTime);
-            String formattedDuration = String.format("%02d:%02d:%02d", 
-                    duration.toHours(), 
-                    duration.toMinutesPart(), 
-                    duration.toSecondsPart());
+            // Set the user in the config
+            config.setUser(currentUser);
             
-            // Format the current date and time
-            String timestamp = DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss").format(endTime);
+            // Start the scrape in a separate thread to avoid blocking the response
+            CompletableFuture.runAsync(() -> {
+                try {
+                    // Pass the scrapeId to be used for progress tracking
+                    linkedInScraperService.scrapeJobs(config, scrapeId);
+                } catch (Exception e) {
+                    log.error("Async scraping error: ", e);
+                }
+            });
             
-            // Prepare the response with detailed statistics
-            Map<String, Object> responseMap = new HashMap<>();
-            responseMap.put("success", true);
-            responseMap.put("timestamp", timestamp);
-            responseMap.put("keywords", keywords);
-            responseMap.put("location", location);
-            responseMap.put("jobsFound", scrapedJobs.size());
-            responseMap.put("totalJobsScraped", config.getTotalJobsFound());
-            responseMap.put("pagesScraped", config.getPagesScraped());
-            responseMap.put("duplicatesSkipped", config.getDuplicatesSkipped());
-            responseMap.put("scrapingTimeMs", config.getScrapingTimeMs());
-            responseMap.put("formattedDuration", formattedDuration);
-            responseMap.put("jobs", scrapedJobs);
-            responseMap.put("message", String.format("Scraping completed in %s. Found %d jobs after filtering from %d total jobs scraped.",
-                    formattedDuration, scrapedJobs.size(), config.getTotalJobsFound()));
-            return ResponseEntity.ok(responseMap);
+            // Return immediately with the scrape ID for progress tracking
+            return ResponseEntity.ok(Map.of(
+                "success", true,
+                "scrapeId", scrapeId,
+                "message", "Scraping started. Use the scrapeId to track progress."
+            ));
         } catch (Exception e) {
             log.error("Error during job scrape: {}", e.getMessage(), e);
             return ResponseEntity.badRequest().body(Map.of(
@@ -352,15 +362,18 @@ public class JobController {
         }
     }
 
-    private static final Map<String, ScrapingProgress> SCRAPING_PROGRESS = new ConcurrentHashMap<>();
-
+    /**
+     * API endpoint to get scraping progress
+     */
     @GetMapping("/api/jobs/scrape/progress")
     @ResponseBody
     public ResponseEntity<Map<String, Object>> getScrapingProgress(
             @RequestParam(required = true) String scrapeId) {
-        ScrapingProgress progress = SCRAPING_PROGRESS.getOrDefault(scrapeId, 
-                new ScrapingProgress(0, 0, "Initializing...", 0));
         
+        // Get progress information from the service
+        ScrapingProgress progress = linkedInScraperService.getProgress(scrapeId);
+        
+        // Convert to response map
         Map<String, Object> response = new HashMap<>();
         response.put("percentComplete", progress.getPercentComplete());
         response.put("currentPage", progress.getCurrentPage());

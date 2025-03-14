@@ -18,6 +18,7 @@ import java.util.Collections;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
+import java.util.UUID;
 import java.util.stream.Collectors;
 
 @Service
@@ -171,17 +172,20 @@ public class JobService {
      */
     @Transactional
     public List<Job> scrapeLinkedInJobs(ScrapingConfig config) {
-        User currentUser = userService.getCurrentUser();
-        if (currentUser == null) {
-            throw new IllegalStateException("You must be logged in to scrape jobs");
+        // Check if user is set
+        if (config.getUser() == null) {
+            User currentUser = userService.getCurrentUser();
+            if (currentUser == null) {
+                throw new IllegalStateException("You must be logged in to scrape jobs");
+            }
+            config.setUser(currentUser);
         }
 
-        log.info("Scraping jobs for user: {} (ID: {})", currentUser.getUsername(), currentUser.getId());
-
-        // Set the current user in the config
-        config.setUser(currentUser);
+        log.info("Scraping jobs for user: {} (ID: {})", config.getUser().getUsername(), config.getUser().getId());
         
-        return linkedInScraperService.scrapeJobs(config);
+        // Generate a scrapeId just in case one wasn't provided
+        String scrapeId = UUID.randomUUID().toString();
+        return linkedInScraperService.scrapeJobs(config, scrapeId);
     }
     
     /**

@@ -2,8 +2,11 @@ package com.trackjobs.service;
 
 import com.trackjobs.model.Job;
 import com.trackjobs.model.ScrapingConfig;
+import com.trackjobs.model.ScrapingProgress;
 import com.trackjobs.repository.JobRepository;
 import lombok.extern.slf4j.Slf4j;
+import com.trackjobs.service.ProgressService;
+
 import com.trackjobs.model.User;
 
 import org.jsoup.Connection;
@@ -18,9 +21,9 @@ import org.springframework.transaction.annotation.Transactional;
 
 import java.io.IOException;
 import java.time.LocalDate;
-import java.time.ZoneId;
 import java.time.format.DateTimeFormatter;
 import java.util.*;
+import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.atomic.AtomicInteger;
 import java.util.stream.Collectors;
 
@@ -31,6 +34,9 @@ public class LinkedInScraperService {
     @Autowired
     private JobRepository jobRepository;
     
+    @Autowired
+    private ProgressService progressService;  // Inject the progress service
+    
     @Value("${linkedin.scraper.user-agent}")
     private String userAgent;
     
@@ -39,6 +45,9 @@ public class LinkedInScraperService {
     
     @Value("${linkedin.scraper.max-pages}")
     private int maxPages;
+    
+    // Map to store progress by scrape ID
+    private final Map<String, ScrapingProgress> scrapeProgressMap = new ConcurrentHashMap<>();
     
     // List of user agents to rotate through for requests
     private final List<String> USER_AGENTS = Arrays.asList(
@@ -52,12 +61,22 @@ public class LinkedInScraperService {
      * Scrape LinkedIn jobs based on the provided configuration
      * Performs separate searches for each included experience level
      * 
+     * @param scrapeId The unique ID for tracking progress
      * @param config The scraping configuration
      * @return A list of scraped jobs
      */
-    public List<Job> scrapeJobs(ScrapingConfig config) {
+    public List<Job> scrapeJobs(ScrapingConfig config, String scrapeId) {
         log.info("Starting LinkedIn job scraping with keywords: {}, location: {}", 
                 config.getKeywords(), config.getLocation());
+        
+        // Initialize progress tracking
+        ScrapingProgress progress = new ScrapingProgress();
+        progress.setPercentComplete(0);
+        progress.setStatus("Initializing scrape...");
+        progress.setCurrentPage(0);
+        
+        // Store progress in map for API endpoint access
+        scrapeProgressMap.put(scrapeId, progress);
         
         // Initialize stats
         config.setPagesScraped(0);
@@ -75,10 +94,16 @@ public class LinkedInScraperService {
         List<Job> allScrapedJobs = new ArrayList<>();
         
         try {
+            // Update progress - connecting phase
+            updateProgress(scrapeId, 5, "Connecting to LinkedIn...");
+            
             // Initialize session by getting cookies
             Map<String, String> cookies = new HashMap<>();
             initializeSession(cookies);
             log.info("LinkedIn session initialized successfully");
+            
+            // Update progress - connection successful
+            updateProgress(scrapeId, 10, "Connected to LinkedIn successfully");
             
             List<String> experienceLevelsToSearch;
             
@@ -92,18 +117,43 @@ public class LinkedInScraperService {
                 log.info("No specific experience levels selected, will perform a single general search");
             }
             
+            // Update progress with experience level count
+            progress.setTotalExperienceLevels(experienceLevelsToSearch.size());
+            progress.setExperienceLevelIndex(0);
+            updateProgress(scrapeId, progress);
+            
             // Track jobs by URL to avoid duplicates across experience level searches
             Set<String> processedJobUrls = new HashSet<>();
             
             // Perform separate searches for each experience level
-            for (String experienceLevel : experienceLevelsToSearch) {
+            for (int expLevelIndex = 0; expLevelIndex < experienceLevelsToSearch.size(); expLevelIndex++) {
+                String experienceLevel = experienceLevelsToSearch.get(expLevelIndex);
+                
+                // Update progress for current experience level
+                progress.setExperienceLevelIndex(expLevelIndex);
+                progress.setCurrentExperienceLevel(experienceLevel);
+                progress.setStatus("Searching for experience level: " + experienceLevel);
+                
+                // Calculate progress percentage based on experience level
+                int baseProgress = 10; // 10% for initialization
+                int progressPerExpLevel = 80 / experienceLevelsToSearch.size(); // 80% for scraping
+                int currentProgress = baseProgress + (expLevelIndex * progressPerExpLevel);
+                
+                updateProgress(scrapeId, currentProgress, progress.getStatus());
+                
                 log.info("Searching for jobs with experience level: {}", experienceLevel);
                 
                 // Clone the config but set the specific experience level
                 ScrapingConfig levelConfig = cloneConfigWithExperienceLevel(config, experienceLevel);
                 
+                // Set progress info for this scrape
+                int pagesToScrape = Math.min(levelConfig.getPagesToScrape(), maxPages);
+                progress.setTotalPages(pagesToScrape);
+                progress.setCurrentPage(0);
+                updateProgress(scrapeId, progress);
+                
                 // Scrape jobs for this specific experience level
-                List<Job> jobsForLevel = scrapeJobsForExperienceLevel(levelConfig, scrapeDate, cookies, processedJobUrls);
+                List<Job> jobsForLevel = scrapeJobsForExperienceLevel(levelConfig, scrapeDate, cookies, processedJobUrls, scrapeId, currentProgress, progressPerExpLevel);
                 
                 // Update the original config with stats from this scrape
                 config.setPagesScraped(config.getPagesScraped() + levelConfig.getPagesScraped());
@@ -117,10 +167,13 @@ public class LinkedInScraperService {
                         experienceLevel, jobsForLevel.size());
                 
                 // Add a delay between experience level searches to avoid rate limiting
-                if (experienceLevelsToSearch.indexOf(experienceLevel) < experienceLevelsToSearch.size() - 1) {
+                if (expLevelIndex < experienceLevelsToSearch.size() - 1) {
                     Thread.sleep(requestDelay * 2);
                 }
             }
+            
+            // Final processing phase
+            updateProgress(scrapeId, 90, "Filtering and processing scraped jobs...");
             
             // Apply other filters (but not experience level filtering)
             List<Job> filteredJobs = filterJobsExceptExperience(allScrapedJobs, config);
@@ -130,10 +183,15 @@ public class LinkedInScraperService {
                     filteredJobs.size(), allScrapedJobs.size());
             
             // Save filtered jobs to database
+            updateProgress(scrapeId, 95, "Saving jobs to database...");
             saveJobs(filteredJobs, config);
+            
+            // Completed
+            updateProgress(scrapeId, 100, "Scraping completed successfully!");
             
         } catch (Exception e) {
             log.error("Error during LinkedIn scraping: {}", e.getMessage(), e);
+            updateProgress(scrapeId, -1, "Error during scraping: " + e.getMessage());
         }
         
         // Set scraping time
@@ -145,7 +203,56 @@ public class LinkedInScraperService {
                 config.getPagesScraped(), config.getTotalJobsFound(), config.getJobsAfterFiltering(), 
                 config.getDuplicatesSkipped());
         
+        // Keep progress info available for a while, then clean up
+        scheduleProgressCleanup(scrapeId);
+        
         return allScrapedJobs;
+    }
+
+    public List<Job> scrapeJobs(ScrapingConfig config) {
+        String scrapeId = UUID.randomUUID().toString();
+        return scrapeJobs(config, scrapeId);
+    }
+
+    /**
+     * Schedule cleanup of progress info after 10 minutes
+     */
+    private void scheduleProgressCleanup(String scrapeId) {
+        new Timer().schedule(new TimerTask() {
+            @Override
+            public void run() {
+                scrapeProgressMap.remove(scrapeId);
+                log.debug("Removed progress info for scrape ID: {}", scrapeId);
+            }
+        }, 10 * 60 * 1000); // 10 minutes
+    }
+    
+    /**
+     * Get current progress for a scrape
+     */
+    public ScrapingProgress getProgress(String scrapeId) {
+        return scrapeProgressMap.getOrDefault(scrapeId, 
+                new ScrapingProgress(0, 0, "Scrape not found or already completed", 0));
+    }
+    
+    /**
+     * Update scraping progress
+     */
+    private void updateProgress(String scrapeId, int percentComplete, String status) {
+        ScrapingProgress progress = scrapeProgressMap.getOrDefault(scrapeId, new ScrapingProgress());
+        progress.setPercentComplete(percentComplete);
+        progress.setStatus(status);
+        scrapeProgressMap.put(scrapeId, progress);
+        
+        log.debug("Progress update for scrape {}: {}% - {}", scrapeId, percentComplete, status);
+    }
+    
+    /**
+     * Update scraping progress with full progress object
+     */
+    private void updateProgress(String scrapeId, ScrapingProgress progress) {
+        scrapeProgressMap.put(scrapeId, progress);
+        log.debug("Full progress update for scrape {}: {}%", scrapeId, progress.getPercentComplete());
     }
 
     /**
@@ -170,10 +277,11 @@ public class LinkedInScraperService {
     }
 
     /**
-     * Scrape jobs for a specific experience level
+     * Scrape jobs for a specific experience level with progress tracking
      */
     private List<Job> scrapeJobsForExperienceLevel(ScrapingConfig config, LocalDate scrapeDate, 
-                                                Map<String, String> cookies, Set<String> processedJobUrls) 
+                                                Map<String, String> cookies, Set<String> processedJobUrls,
+                                                String scrapeId, int baseProgress, int progressForThisLevel) 
                                                 throws InterruptedException {
         
         String experienceLevelName = config.getExperienceLevel() != null ? 
@@ -184,10 +292,28 @@ public class LinkedInScraperService {
         
         log.info("====== PROGRESS: Starting search for experience level: {} ======", experienceLevelName);
         
+        // Get progress from map
+        ScrapingProgress progress = scrapeProgressMap.get(scrapeId);
+        if (progress == null) {
+            progress = new ScrapingProgress();
+            scrapeProgressMap.put(scrapeId, progress);
+        }
+        
         // Scrape each page
         for (int page = 0; page < pagesToScrape; page++) {
-            log.info("====== PROGRESS: Scraping page {} of {} for experience level '{}' ======", 
+            // Update page progress
+            progress.setCurrentPage(page + 1);
+            
+            // Calculate progress percentage for this page
+            int progressPerPage = progressForThisLevel / pagesToScrape;
+            int currentProgress = baseProgress + (progressPerPage * page);
+            
+            String statusMessage = String.format("Scraping page %d of %d for experience level '%s'", 
                     page + 1, pagesToScrape, experienceLevelName);
+            
+            updateProgress(scrapeId, currentProgress, statusMessage);
+            
+            log.info("====== PROGRESS: {} ======", statusMessage);
             config.setPagesScraped(page + 1);
             
             // Build the search URL for this page
@@ -237,11 +363,25 @@ public class LinkedInScraperService {
                 
                 log.info("====== PROGRESS: Starting job details scraping for {} jobs ======", totalJobs);
                 
+                // Update progress for job details phase
+                updateProgress(scrapeId, currentProgress + (progressPerPage / 2), 
+                        "Getting detailed job information for " + totalJobs + " jobs");
+                
                 for (Job job : uniqueJobs) {
                     try {
                         jobCount++;
-                        log.info("====== PROGRESS: Getting details for job {}/{}: {} ======", 
+                        
+                        // Update detailed progress for individual job
+                        String jobStatus = String.format("Getting details for job %d/%d: %s", 
                                 jobCount, totalJobs, job.getTitle());
+                        
+                        // Calculate job detail progress within the page
+                        int jobDetailProgress = currentProgress + (progressPerPage / 2) + 
+                                ((progressPerPage / 2) * jobCount / totalJobs);
+                        
+                        updateProgress(scrapeId, jobDetailProgress, jobStatus);
+                        
+                        log.info("====== PROGRESS: {} ======", jobStatus);
                         
                         // Add a delay between requests to avoid rate limiting
                         Thread.sleep(requestDelay);
