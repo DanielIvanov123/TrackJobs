@@ -4,7 +4,7 @@ import com.trackjobs.model.Job;
 import com.trackjobs.model.ScrapingConfig;
 import com.trackjobs.repository.JobRepository;
 import lombok.extern.slf4j.Slf4j;
-import main.java.com.trackjobs.model.User;
+import com.trackjobs.model.User;
 
 import org.jsoup.Connection;
 import org.jsoup.Jsoup;
@@ -14,6 +14,7 @@ import org.jsoup.select.Elements;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 import java.io.IOException;
 import java.time.LocalDate;
@@ -244,7 +245,10 @@ public class LinkedInScraperService {
         // Add additional experience level filters if specified (from codebase1)
         if (config.getExperienceLevelInclude() != null && !config.getExperienceLevelInclude().isEmpty()) {
             for (String level : config.getExperienceLevelInclude()) {
-                urlBuilder.append("&f_E=").append(level);
+                String code = mapExperienceLevelToLinkedInCode(level);
+                if (!code.isEmpty()) {
+                    urlBuilder.append("&f_E=").append(code);
+                }
             }
         }
         
@@ -264,6 +268,8 @@ public class LinkedInScraperService {
      * Map experience level to LinkedIn's code
      */
     private String mapExperienceLevelToLinkedInCode(String experienceLevel) {
+        if (experienceLevel == null) return "";
+        
         switch (experienceLevel.toUpperCase()) {
             case "INTERNSHIP": return "1";
             case "ENTRY_LEVEL": return "2";
@@ -272,6 +278,21 @@ public class LinkedInScraperService {
             case "DIRECTOR": return "5";
             case "EXECUTIVE": return "6";
             default: return "";
+        }
+    }
+    
+    /**
+     * Map LinkedIn code to experience level string
+     */
+    private String mapLinkedInCodeToExperienceLevel(String code) {
+        switch (code) {
+            case "1": return "INTERNSHIP";
+            case "2": return "ENTRY_LEVEL"; 
+            case "3": return "ASSOCIATE";
+            case "4": return "MID_SENIOR";
+            case "5": return "DIRECTOR";
+            case "6": return "EXECUTIVE";
+            default: return "NOT_APPLICABLE";
         }
     }
     
@@ -402,9 +423,6 @@ public class LinkedInScraperService {
                     }
                 }
                 
-                // Determine experience level from title
-                String experienceLevel = determineExperienceLevel(title);
-                
                 // Determine job type from listing
                 String jobType = determineJobType(card);
                 
@@ -418,7 +436,7 @@ public class LinkedInScraperService {
                     .url(url)
                     .datePosted(datePosted)
                     .dateScraped(scrapeDate)
-                    .experienceLevel(experienceLevel)
+                    .experienceLevel(determineExperienceLevel(title, null))
                     .jobType(jobType)
                     .build();
                 
@@ -433,6 +451,263 @@ public class LinkedInScraperService {
     }
     
     /**
+     * Determine experience level from job title and standardize to LinkedIn's categorization
+     * @param title The job title
+     * @param description The job description
+     * @return The standardized LinkedIn experience level
+     */
+    private String determineExperienceLevel(String title, String description) {
+        String lowerTitle = title.toLowerCase();
+        String lowerDescription = description != null ? description.toLowerCase() : "";
+        
+        // Try to determine from title first (most accurate)
+        if (lowerTitle.contains("intern") || lowerTitle.contains("internship")) {
+            return "INTERNSHIP";
+        } else if (lowerTitle.contains("ceo") || lowerTitle.contains("chief") || 
+                lowerTitle.contains("president") || lowerTitle.contains("vp") || 
+                lowerTitle.contains("vice president")) {
+            return "EXECUTIVE";
+        } else if (lowerTitle.contains("director") || lowerTitle.contains("head of") || 
+                lowerTitle.contains("principal")) {
+            return "DIRECTOR";
+        } else if (lowerTitle.contains("senior") || lowerTitle.contains("sr.") || 
+                lowerTitle.contains("lead") || lowerTitle.contains("staff")) {
+            return "MID_SENIOR";
+        } else if (lowerTitle.contains("junior") || lowerTitle.contains("jr.") || 
+                lowerTitle.contains("entry") || lowerTitle.contains("associate") || 
+                lowerTitle.contains("assistant")) {
+            return "ENTRY_LEVEL";
+        }
+        
+        // Fall back to description if available
+        if (!lowerDescription.isEmpty()) {
+            if (lowerDescription.contains("internship") || lowerDescription.contains("intern program")) {
+                return "INTERNSHIP";
+            } else if (lowerDescription.contains("executive") || lowerDescription.contains("c-suite")) {
+                return "EXECUTIVE";
+            } else if (lowerDescription.contains("director role") || lowerDescription.contains("director position")) {
+                return "DIRECTOR";
+            } else if (lowerDescription.contains("senior") || lowerDescription.contains("experienced")) {
+                return "MID_SENIOR";
+            } else if (lowerDescription.contains("entry level") || lowerDescription.contains("junior")) {
+                return "ENTRY_LEVEL";
+            } else if (lowerDescription.contains("associate position") || lowerDescription.contains("associate role")) {
+                return "ASSOCIATE";
+            }
+        }
+        
+        // If we couldn't determine specifically, default to "NOT_APPLICABLE"
+        return "NOT_APPLICABLE";
+    }
+    
+    /**
+     * Determine the LinkedIn numeric code for an experience level string
+     * This method is used during filtering to convert experience level strings to LinkedIn codes
+     * 
+     * @param experienceLevel The experience level string
+     * @return The LinkedIn numeric code for the experience level
+     */
+    private String determineExperienceLevelCode(String experienceLevel) {
+        if (experienceLevel == null) return "0";
+        
+        switch (experienceLevel.toUpperCase()) {
+            case "INTERNSHIP":
+                return "1";
+            case "ENTRY_LEVEL":
+            case "ENTRY LEVEL":
+            case "JUNIOR":
+                return "2";
+            case "ASSOCIATE":
+                return "3";
+            case "MID_SENIOR":
+            case "MID-SENIOR":
+            case "SENIOR":
+            case "MID-LEVEL":
+                return "4";
+            case "DIRECTOR":
+                return "5";
+            case "EXECUTIVE":
+                return "6";
+            case "NOT_APPLICABLE":
+            case "NOT SPECIFIED":
+                return "0";
+            default:
+                return "0";
+        }
+    }
+    
+    /**
+     * Convert a job's experience level to a standardized format
+     * @param job The job to update
+     * @return The updated job with standardized experience level
+     */
+    private Job standardizeJobExperienceLevel(Job job) {
+        if (job.getExperienceLevel() == null || job.getExperienceLevel().isEmpty()) {
+            job.setExperienceLevel("NOT_APPLICABLE");
+        } else {
+            // Convert any non-standard format to our standard format
+            String standardLevel;
+            
+            switch (job.getExperienceLevel().toUpperCase()) {
+                case "INTERNSHIP":
+                case "INTERN":
+                    standardLevel = "INTERNSHIP";
+                    break;
+                case "ENTRY LEVEL":
+                case "JUNIOR":
+                case "JR":
+                    standardLevel = "ENTRY_LEVEL";
+                    break;
+                case "ASSOCIATE":
+                    standardLevel = "ASSOCIATE";
+                    break;
+                case "MID-LEVEL":
+                case "SENIOR":
+                case "SR":
+                case "LEAD":
+                    standardLevel = "MID_SENIOR";
+                    break;
+                case "DIRECTOR":
+                case "HEAD OF":
+                case "PRINCIPAL":
+                    standardLevel = "DIRECTOR";
+                    break;
+                case "EXECUTIVE":
+                case "VP":
+                case "CHIEF":
+                case "CEO":
+                case "CTO":
+                case "CFO":
+                    standardLevel = "EXECUTIVE";
+                    break;
+                default:
+                    standardLevel = "NOT_APPLICABLE";
+            }
+            
+            job.setExperienceLevel(standardLevel);
+        }
+        
+        return job;
+    }
+    
+    /**
+     * Apply experience level filters to a list of jobs
+     * @param jobs The list of jobs to filter
+     * @param experienceLevelInclude The list of experience levels to include
+     * @param experienceLevelExclude The list of experience levels to exclude
+     * @return The filtered list of jobs
+     */
+    private List<Job> applyExperienceLevelFilters(List<Job> jobs, List<String> experienceLevelInclude, List<String> experienceLevelExclude) {
+        if (jobs.isEmpty()) {
+            return jobs;
+        }
+        
+        log.info("Applying experience level filters - Include: {}, Exclude: {}", 
+            experienceLevelInclude, experienceLevelExclude);
+        
+        // Skip filtering if both include and exclude are empty
+        if ((experienceLevelInclude == null || experienceLevelInclude.isEmpty()) &&
+            (experienceLevelExclude == null || experienceLevelExclude.isEmpty())) {
+            log.info("No experience level filters to apply");
+            return jobs;
+        }
+        
+        int beforeCount = jobs.size();
+        List<Job> filteredJobs = new ArrayList<>(jobs);
+        
+        // Handle exclude first (exclude takes precedence)
+        if (experienceLevelExclude != null && !experienceLevelExclude.isEmpty()) {
+            filteredJobs = filteredJobs.stream()
+                .filter(job -> {
+                    // For each job, get its experience level code
+                    String levelCode = determineExperienceLevelCode(job.getExperienceLevel());
+                    
+                    // Keep the job if its level is NOT in the exclude list
+                    boolean keep = experienceLevelExclude.stream()
+                        .noneMatch(excludeLevel -> {
+                            String excludeCode = mapExperienceLevelToLinkedInCode(excludeLevel);
+                            return levelCode.equals(excludeCode);
+                        });
+                        
+                    if (!keep) {
+                        log.debug("Excluded job by experience level: {} ({})", job.getTitle(), job.getExperienceLevel());
+                    }
+                    return keep;
+                })
+                .collect(Collectors.toList());
+        }
+        
+        // Then apply include filter if specified
+        if (experienceLevelInclude != null && !experienceLevelInclude.isEmpty()) {
+            filteredJobs = filteredJobs.stream()
+                .filter(job -> {
+                    // For each job, get its experience level code
+                    String levelCode = determineExperienceLevelCode(job.getExperienceLevel());
+                    
+                    // "NOT_APPLICABLE" (code "0") is always included if specified
+                    if (levelCode.equals("0") && experienceLevelInclude.contains("NOT_APPLICABLE")) {
+                        return true;
+                    }
+                    
+                    // Keep the job if its level IS in the include list
+                    boolean keep = experienceLevelInclude.stream()
+                        .anyMatch(includeLevel -> {
+                            String includeCode = mapExperienceLevelToLinkedInCode(includeLevel);
+                            return levelCode.equals(includeCode);
+                        });
+                        
+                    if (!keep) {
+                        log.debug("Filtered out job not in include list: {} ({})", job.getTitle(), job.getExperienceLevel());
+                    }
+                    return keep;
+                })
+                .collect(Collectors.toList());
+        }
+        
+        log.info("Experience level filtering: {} -> {} jobs", beforeCount, filteredJobs.size());
+        return filteredJobs;
+    }
+    
+    /**
+     * Determine job type from the job card
+     */
+    private String determineJobType(Element card) {
+        String cardText = card.text().toLowerCase();
+        
+        if (cardText.contains("full-time") || cardText.contains("full time")) {
+            return "Full-time";
+        } else if (cardText.contains("part-time") || cardText.contains("part time")) {
+            return "Part-time";
+        } else if (cardText.contains("contract")) {
+            return "Contract";
+        } else if (cardText.contains("temporary") || cardText.contains("temp")) {
+            return "Temporary";
+        } else if (cardText.contains("intern") || cardText.contains("internship")) {
+            return "Internship";
+        } else {
+            return "Full-time";  // Default to full-time
+        }
+    }
+    
+    /**
+     * Extract job description from job details page
+     */
+    private String extractJobDescription(Document doc) {
+        // Try to find the job description element
+        Element descElement = doc.selectFirst("div.description__text");
+        
+        if (descElement == null) {
+            log.debug("Description element not found in job details page");
+            return "";  // Description not found
+        }
+        
+        // Clean up the description
+        descElement.select("button").remove();  // Remove "See more" buttons
+        
+        return descElement.text().trim();
+    }
+    
+    /**
      * Filter jobs based on config filters
      */
     private List<Job> filterJobs(List<Job> jobs, ScrapingConfig config) {
@@ -443,6 +718,11 @@ public class LinkedInScraperService {
         }
         
         List<Job> filteredJobs = new ArrayList<>(jobs);
+        
+        // Standardize experience levels for all jobs first
+        filteredJobs = filteredJobs.stream()
+            .map(this::standardizeJobExperienceLevel)
+            .collect(Collectors.toList());
         
         // Apply title include words filter
         if (config.getTitleIncludeWords() != null && !config.getTitleIncludeWords().isEmpty()) {
@@ -499,102 +779,20 @@ public class LinkedInScraperService {
             log.info("Description exclude words filter: {} -> {} jobs", beforeCount, filteredJobs.size());
         }
         
-        // Apply experience level exclude filter
-        if (config.getExperienceLevelExclude() != null && !config.getExperienceLevelExclude().isEmpty()) {
-            int beforeCount = filteredJobs.size();
-            filteredJobs = filteredJobs.stream()
-                .filter(job -> {
-                    String level = determineExperienceLevelCode(job.getExperienceLevel());
-                    return !config.getExperienceLevelExclude().contains(level);
-                })
-                .collect(Collectors.toList());
-            log.info("Experience level exclude filter: {} -> {} jobs", beforeCount, filteredJobs.size());
-        }
+        // Apply experience level filtering
+        filteredJobs = applyExperienceLevelFilters(
+            filteredJobs, 
+            config.getExperienceLevelInclude(), 
+            config.getExperienceLevelExclude()
+        );
         
         return filteredJobs;
     }
     
     /**
-     * Map experience level to LinkedIn code
-     */
-    private String determineExperienceLevelCode(String experienceLevel) {
-        if (experienceLevel == null) return "0";
-        
-        if (experienceLevel.equalsIgnoreCase("Internship")) return "1";
-        if (experienceLevel.equalsIgnoreCase("Junior") || 
-            experienceLevel.equalsIgnoreCase("Entry Level")) return "2";
-        if (experienceLevel.equalsIgnoreCase("Associate")) return "3";
-        if (experienceLevel.equalsIgnoreCase("Mid-level") || 
-            experienceLevel.equalsIgnoreCase("Senior")) return "4";
-        if (experienceLevel.equalsIgnoreCase("Director")) return "5";
-        if (experienceLevel.equalsIgnoreCase("Executive")) return "6";
-        
-        return "0";
-    }
-    
-    /**
-     * Determine experience level from job title
-     */
-    private String determineExperienceLevel(String title) {
-        String lowerTitle = title.toLowerCase();
-        
-        if (lowerTitle.contains("intern") || lowerTitle.contains("internship")) {
-            return "Internship";
-        } else if (lowerTitle.contains("senior") || lowerTitle.contains("sr.") || lowerTitle.contains("lead")) {
-            return "Senior";
-        } else if (lowerTitle.contains("junior") || lowerTitle.contains("jr.") || lowerTitle.contains("entry")) {
-            return "Junior";
-        } else if (lowerTitle.contains("principal") || lowerTitle.contains("director") || lowerTitle.contains("head of")) {
-            return "Director";
-        } else if (lowerTitle.contains("vp") || lowerTitle.contains("vice president") || lowerTitle.contains("chief")) {
-            return "Executive";
-        } else {
-            return "Mid-level";
-        }
-    }
-    
-    /**
-     * Determine job type from the job card
-     */
-    private String determineJobType(Element card) {
-        String cardText = card.text().toLowerCase();
-        
-        if (cardText.contains("full-time") || cardText.contains("full time")) {
-            return "Full-time";
-        } else if (cardText.contains("part-time") || cardText.contains("part time")) {
-            return "Part-time";
-        } else if (cardText.contains("contract")) {
-            return "Contract";
-        } else if (cardText.contains("temporary") || cardText.contains("temp")) {
-            return "Temporary";
-        } else if (cardText.contains("intern") || cardText.contains("internship")) {
-            return "Internship";
-        } else {
-            return "Full-time";  // Default to full-time
-        }
-    }
-    
-    /**
-     * Extract job description from job details page
-     */
-    private String extractJobDescription(Document doc) {
-        // Try to find the job description element
-        Element descElement = doc.selectFirst("div.description__text");
-        
-        if (descElement == null) {
-            log.debug("Description element not found in job details page");
-            return "";  // Description not found
-        }
-        
-        // Clean up the description
-        descElement.select("button").remove();  // Remove "See more" buttons
-        
-        return descElement.text().trim();
-    }
-    
-    /**
      * Save jobs to the database, avoiding duplicates
      */
+    @Transactional
     private void saveJobs(List<Job> jobs, ScrapingConfig config) {
         int savedCount = 0;
         int duplicateCount = 0;
@@ -605,6 +803,8 @@ public class LinkedInScraperService {
             return;
         }
         
+        log.info("Saving {} jobs for user: {}", jobs.size(), user.getUsername());
+        
         for (Job job : jobs) {
             try {
                 // Associate job with user
@@ -612,15 +812,22 @@ public class LinkedInScraperService {
                 
                 // Check if this job already exists for this user
                 if (!jobExistsInDatabase(job, user)) {
-                    jobRepository.save(job);
+                    // Explicitly set the user again before saving
+                    job.setUser(user);
+                    
+                    Job savedJob = jobRepository.save(job);
+                    
+                    // Log the saved job ID and user ID for debugging
+                    log.debug("Saved job ID: {}, User ID: {}, Title: {} at {}", 
+                            savedJob.getId(), (savedJob.getUser() != null ? savedJob.getUser().getId() : "null"),
+                            job.getTitle(), job.getCompany());
+                    
                     savedCount++;
-                    log.debug("Saved job: {} at {} for user: {}", 
-                            job.getTitle(), job.getCompany(), user.getUsername());
                 } else {
                     duplicateCount++;
                 }
             } catch (Exception e) {
-                log.warn("Error saving job {}: {}", job.getTitle(), e.getMessage());
+                log.error("Error saving job {}: {}", job.getTitle(), e.getMessage(), e);
             }
         }
         
@@ -633,16 +840,28 @@ public class LinkedInScraperService {
      * Check if a job already exists in the database for this user
      */
     private boolean jobExistsInDatabase(Job job, User user) {
-        // Get existing jobs with matching title and company for this user
+        // Ensure we're only checking against the current user's jobs
+        if (user == null) {
+            log.warn("Cannot check for duplicates: No user provided");
+            return false;
+        }
+        
+        // Get existing jobs with matching title and company for this user only
         List<Job> existingJobs = jobRepository.findByUserAndTitleContainingIgnoreCaseOrCompanyContainingIgnoreCase(
             user, job.getTitle(), job.getCompany());
         
+        log.debug("Found {} potential duplicate jobs for user {}", existingJobs.size(), user.getUsername());
+        
         // Check if any of them match this job
         for (Job existingJob : existingJobs) {
-            if (existingJob.getCompany().equalsIgnoreCase(job.getCompany()) &&
+            // Only check jobs that belong to the current user
+            if (existingJob.getUser() != null && existingJob.getUser().getId().equals(user.getId()) &&
+                existingJob.getCompany().equalsIgnoreCase(job.getCompany()) &&
                 existingJob.getTitle().equalsIgnoreCase(job.getTitle()) &&
                 (existingJob.getDatePosted() == null || job.getDatePosted() == null || 
                 existingJob.getDatePosted().equals(job.getDatePosted()))) {
+                log.debug("Found duplicate job: {} at {} for user {}", 
+                        job.getTitle(), job.getCompany(), user.getUsername());
                 return true;
             }
         }

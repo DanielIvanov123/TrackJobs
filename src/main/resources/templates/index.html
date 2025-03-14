@@ -7,6 +7,9 @@
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0-alpha1/dist/css/bootstrap.min.css" rel="stylesheet">
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.10.3/font/bootstrap-icons.css">
     <link rel="stylesheet" href="/css/styles.css">
+    <!-- CSRF tokens -->
+    <meta name="_csrf" th:content="${_csrf.token}"/>
+    <meta name="_csrf_header" th:content="${_csrf.headerName}"/>
 </head>
 <body>
     <!-- Header -->
@@ -19,6 +22,20 @@
             <span class="navbar-text text-white me-auto">
                 LinkedIn Job Tracker
             </span>
+            
+            <!-- Main Navigation -->
+            <ul class="navbar-nav mx-auto">
+                <li class="nav-item">
+                    <a class="nav-link active" href="#" id="searchTabLink">
+                        <i class="bi bi-search me-1"></i> Search Jobs
+                    </a>
+                </li>
+                <li class="nav-item">
+                    <a class="nav-link" href="#" id="scraperTabLink">
+                        <i class="bi bi-cloud-download me-1"></i> Configure Scraper
+                    </a>
+                </li>
+            </ul>
             
             <!-- User menu -->
             <div class="dropdown">
@@ -36,148 +53,78 @@
     </nav>
 
     <div class="container my-4">
-        <!-- Search & Scrape Form -->
-        <div class="row mb-4">
-            <div class="col-12">
-                <div class="card">
-                    <div class="card-body">
-                        <h5 class="card-title">Search & Scrape LinkedIn Jobs</h5>
-                        <div class="row g-3">
-                            <div class="col-md-4">
-                                <label for="keywords" class="form-label">Keywords</label>
-                                <input type="text" class="form-control" id="keywords" placeholder="e.g. Java Developer">
+        <!-- Search Tab Content -->
+        <div id="searchTabContent">
+            <!-- Search Form -->
+            <div class="row mb-4">
+                <div class="col-12">
+                    <div class="card">
+                        <div class="card-body">
+                            <h5 class="card-title">Search Saved Jobs</h5>
+                            <div class="row g-3">
+                                <div class="col-md-5">
+                                    <label for="searchKeywords" class="form-label">Keywords</label>
+                                    <input type="text" class="form-control" id="searchKeywords" placeholder="Job title, skills, or company">
+                                </div>
+                                <div class="col-md-5">
+                                    <label for="searchLocation" class="form-label">Location</label>
+                                    <input type="text" class="form-control" id="searchLocation" placeholder="City, state, or remote">
+                                </div>
+                                <div class="col-md-2 d-flex align-items-end">
+                                    <button class="btn btn-primary w-100" id="searchButton">
+                                        <i class="bi bi-search me-2"></i>Search
+                                    </button>
+                                </div>
                             </div>
-                            <div class="col-md-4">
-                                <label for="location" class="form-label">Location</label>
-                                <input type="text" class="form-control" id="location" placeholder="e.g. San Francisco">
-                            </div>
-                            <div class="col-md-2">
-                                <label for="pagesToScrape" class="form-label">Pages to Scrape</label>
-                                <input type="number" class="form-control" id="pagesToScrape" value="1" min="1" max="5">
-                            </div>
-                            <div class="col-md-2 d-flex align-items-end">
-                                <button class="btn btn-primary w-100" id="scrapeButton">
-                                    <i class="bi bi-search me-2"></i>Scrape LinkedIn
-                                </button>
-                            </div>
-                        </div>
-                        
-                        <!-- Advanced Options (collapsible) -->
-                        <div class="mt-3">
-                            <button class="btn btn-sm btn-outline-secondary" type="button" id="advancedToggle" data-bs-toggle="collapse" data-bs-target="#advancedOptions">
-                                Advanced Options <i class="bi bi-chevron-down"></i>
-                            </button>
                             
-                            <div class="collapse mt-3" id="advancedOptions">
-                                <div class="card card-body bg-light">
-                                    <div class="row mb-3">
-                                        <div class="col-md-3">
-                                            <div class="form-check">
-                                                <input class="form-check-input" type="checkbox" id="remoteOnly">
-                                                <label class="form-check-label" for="remoteOnly">
-                                                    Remote Only
-                                                </label>
-                                            </div>
-                                        </div>
-                                        <div class="col-md-3">
-                                            <label for="experienceLevel" class="form-label">Experience Level</label>
-                                            <select class="form-select" id="experienceLevel">
-                                                <option value="">Any</option>
-                                                <option value="INTERNSHIP">Internship</option>
-                                                <option value="ENTRY_LEVEL">Entry Level</option>
-                                                <option value="ASSOCIATE">Associate</option>
-                                                <option value="MID_SENIOR">Mid-Senior Level</option>
-                                                <option value="DIRECTOR">Director</option>
-                                                <option value="EXECUTIVE">Executive</option>
-                                            </select>
-                                        </div>
-                                        <div class="col-md-3">
-                                            <label for="jobType" class="form-label">Job Type</label>
-                                            <select class="form-select" id="jobType">
-                                                <option value="">Any</option>
-                                                <option value="FULL_TIME">Full-time</option>
-                                                <option value="PART_TIME">Part-time</option>
-                                                <option value="CONTRACT">Contract</option>
-                                                <option value="TEMPORARY">Temporary</option>
-                                                <option value="INTERNSHIP">Internship</option>
-                                            </select>
-                                        </div>
-                                        <div class="col-md-3">
-                                            <label for="daysOld" class="form-label">Days Old</label>
-                                            <select class="form-select" id="daysOld">
-                                                <option value="1">Past 24 hours</option>
-                                                <option value="7" selected>Past week</option>
-                                                <option value="30">Past month</option>
-                                                <option value="0">Any time</option>
-                                            </select>
-                                        </div>
-                                    </div>
-                                    
-                                    <!-- Additional filters -->
-                                    <div class="row mb-3">
-                                        <div class="col-md-6">
-                                            <label for="titleIncludeWords" class="form-label">Title Include Words</label>
-                                            <input type="text" class="form-control" id="titleIncludeWords" placeholder="Words separated by commas">
-                                            <div class="form-text">Jobs must contain at least one of these words in the title</div>
-                                        </div>
-                                        <div class="col-md-6">
-                                            <label for="titleExcludeWords" class="form-label">Title Exclude Words</label>
-                                            <input type="text" class="form-control" id="titleExcludeWords" placeholder="Words separated by commas">
-                                            <div class="form-text">Jobs containing any of these words in the title will be excluded</div>
-                                        </div>
-                                    </div>
-                                    
-                                    <div class="row mb-3">
-                                        <div class="col-md-6">
-                                            <label for="companyExcludeWords" class="form-label">Company Exclude Words</label>
-                                            <input type="text" class="form-control" id="companyExcludeWords" placeholder="Words separated by commas">
-                                            <div class="form-text">Jobs from companies containing these words will be excluded</div>
-                                        </div>
-                                        <div class="col-md-6">
-                                            <label for="descriptionExcludeWords" class="form-label">Description Exclude Words</label>
-                                            <input type="text" class="form-control" id="descriptionExcludeWords" placeholder="Words separated by commas">
-                                            <div class="form-text">Jobs containing these words in the description will be excluded</div>
-                                        </div>
-                                    </div>
-                                    
-                                    <!-- Experience Level Include/Exclude -->
-                                    <div class="row">
-                                        <div class="col-md-6">
-                                            <label class="form-label">Include Experience Levels</label>
-                                            <div class="d-flex flex-wrap">
-                                                <div class="form-check me-3 mb-2">
-                                                    <input class="form-check-input" type="checkbox" name="expInclude" value="1" id="expInclude1">
-                                                    <label class="form-check-label" for="expInclude1">Internship</label>
-                                                </div>
-                                                <div class="form-check me-3 mb-2">
-                                                    <input class="form-check-input" type="checkbox" name="expInclude" value="2" id="expInclude2" checked>
-                                                    <label class="form-check-label" for="expInclude2">Entry Level</label>
-                                                </div>
-                                                <div class="form-check me-3 mb-2">
-                                                    <input class="form-check-input" type="checkbox" name="expInclude" value="3" id="expInclude3" checked>
-                                                    <label class="form-check-label" for="expInclude3">Associate</label>
-                                                </div>
-                                                <div class="form-check me-3 mb-2">
-                                                    <input class="form-check-input" type="checkbox" name="expInclude" value="4" id="expInclude4" checked>
-                                                    <label class="form-check-label" for="expInclude4">Mid-Senior</label>
-                                                </div>
-                                                <div class="form-check me-3 mb-2">
-                                                    <input class="form-check-input" type="checkbox" name="expInclude" value="0" id="expInclude0" checked>
-                                                    <label class="form-check-label" for="expInclude0">Not Specified</label>
+                            <!-- Additional Search Filters -->
+                            <div class="mt-3">
+                                <button class="btn btn-sm btn-outline-secondary" type="button" data-bs-toggle="collapse" data-bs-target="#searchFilters">
+                                    Search Filters <i class="bi bi-chevron-down"></i>
+                                </button>
+                                
+                                <div class="collapse mt-3" id="searchFilters">
+                                    <div class="card card-body bg-light">
+                                        <div class="row mb-3">
+                                            <div class="col-md-3">
+                                                <div class="form-check">
+                                                    <input class="form-check-input" type="checkbox" id="searchRemoteOnly">
+                                                    <label class="form-check-label" for="searchRemoteOnly">
+                                                        Remote Only
+                                                    </label>
                                                 </div>
                                             </div>
-                                        </div>
-                                        <div class="col-md-6">
-                                            <label class="form-label">Exclude Experience Levels</label>
-                                            <div class="d-flex flex-wrap">
-                                                <div class="form-check me-3 mb-2">
-                                                    <input class="form-check-input" type="checkbox" name="expExclude" value="5" id="expExclude5" checked>
-                                                    <label class="form-check-label" for="expExclude5">Director</label>
-                                                </div>
-                                                <div class="form-check me-3 mb-2">
-                                                    <input class="form-check-input" type="checkbox" name="expExclude" value="6" id="expExclude6" checked>
-                                                    <label class="form-check-label" for="expExclude6">Executive</label>
-                                                </div>
+                                            <div class="col-md-3">
+                                                <label for="searchExperienceLevel" class="form-label">Experience Level</label>
+                                                <select class="form-select" id="searchExperienceLevel">
+                                                    <option value="">Any</option>
+                                                    <option value="Internship">Internship</option>
+                                                    <option value="Junior">Entry Level</option>
+                                                    <option value="Associate">Associate</option>
+                                                    <option value="Mid-level">Mid-Senior Level</option>
+                                                    <option value="Director">Director</option>
+                                                    <option value="Executive">Executive</option>
+                                                </select>
+                                            </div>
+                                            <div class="col-md-3">
+                                                <label for="searchJobType" class="form-label">Job Type</label>
+                                                <select class="form-select" id="searchJobType">
+                                                    <option value="">Any</option>
+                                                    <option value="Full-time">Full-time</option>
+                                                    <option value="Part-time">Part-time</option>
+                                                    <option value="Contract">Contract</option>
+                                                    <option value="Temporary">Temporary</option>
+                                                    <option value="Internship">Internship</option>
+                                                </select>
+                                            </div>
+                                            <div class="col-md-3">
+                                                <label for="searchDatePosted" class="form-label">Date Posted</label>
+                                                <select class="form-select" id="searchDatePosted">
+                                                    <option value="0">Any time</option>
+                                                    <option value="1">Past 24 hours</option>
+                                                    <option value="7" selected>Past week</option>
+                                                    <option value="30">Past month</option>
+                                                </select>
                                             </div>
                                         </div>
                                     </div>
@@ -187,65 +134,394 @@
                     </div>
                 </div>
             </div>
-        </div>
-        
-        <!-- Loading Indicator with improved feedback -->
-        <div id="loadingIndicator" class="card mb-4" style="display: none;">
-            <div class="card-body">
-                <h5 class="card-title mb-3">Scraping LinkedIn Jobs...</h5>
-                
-                <!-- Progress bar -->
-                <div class="progress mb-3" style="height: 25px;">
-                    <div id="scrapeProgressBar" class="progress-bar progress-bar-striped progress-bar-animated" 
-                         role="progressbar" style="width: 0%;" aria-valuenow="0" aria-valuemin="0" aria-valuemax="100">
-                        <span id="progressBarText">Starting scrape...</span>
+            
+            <!-- Results Header -->
+            <div class="d-flex justify-content-between align-items-center mb-3">
+                <h4>Job Listings</h4>
+                <span class="badge bg-primary" id="jobsCount" th:text="${jobs != null ? jobs.size() : 0}">0</span>
+            </div>
+            
+            <!-- Job Results -->
+            <div class="row" id="jobsContainer">
+                <!-- Display jobs from the model -->
+                <div th:each="job : ${jobs}" class="col-md-4 mb-4">
+                    <div class="card h-100 job-card">
+                        <div class="card-body">
+                            <h5 class="card-title" th:text="${job.title}">Job Title</h5>
+                            <h6 class="card-subtitle mb-2 text-muted" th:text="${job.company}">Company</h6>
+                            <p class="card-text">
+                                <i class="bi bi-geo-alt-fill"></i> <span th:text="${job.location}">Location</span><br>
+                                <i class="bi bi-calendar"></i> <span th:text="${job.datePosted}">Date Posted</span><br>
+                                <i class="bi bi-briefcase-fill"></i> <span th:text="${job.experienceLevel}">Experience Level</span><br>
+                                <i class="bi bi-clock"></i> <span th:text="${job.jobType}">Job Type</span>
+                            </p>
+                        </div>
+                        <div class="card-footer bg-transparent">
+                            <a th:if="${job.url}" th:href="${job.url}" target="_blank" class="btn btn-sm btn-outline-primary w-100">
+                                <i class="bi bi-linkedin me-2"></i>View on LinkedIn
+                            </a>
+                        </div>
                     </div>
                 </div>
                 
-                <!-- Status updates -->
-                <div class="card">
-                    <div class="card-header">Status Updates</div>
-                    <ul id="statusUpdatesList" class="list-group list-group-flush" style="max-height: 200px; overflow-y: auto;">
-                        <!-- Status updates will be added here -->
-                    </ul>
+                <!-- Empty state message -->
+                <div th:if="${jobs == null || jobs.empty}" class="col-12 text-center">
+                    <div class="alert alert-info">
+                        <i class="bi bi-info-circle-fill me-2"></i>
+                        No jobs found. Use the search above to find jobs or configure the scraper to get new jobs.
+                    </div>
                 </div>
             </div>
         </div>
         
-        <!-- Results Header -->
-        <div class="d-flex justify-content-between align-items-center mb-3">
-            <h4>Job Listings</h4>
-            <span class="badge bg-primary" id="jobsCount" th:text="${jobs != null ? jobs.size() : 0}">0</span>
-        </div>
-        
-        <!-- Job Results -->
-        <div class="row" id="jobsContainer">
-            <!-- Display jobs from the model -->
-            <div th:each="job : ${jobs}" class="col-md-4 mb-4">
-                <div class="card h-100 job-card">
-                    <div class="card-body">
-                        <h5 class="card-title" th:text="${job.title}">Job Title</h5>
-                        <h6 class="card-subtitle mb-2 text-muted" th:text="${job.company}">Company</h6>
-                        <p class="card-text">
-                            <i class="bi bi-geo-alt-fill"></i> <span th:text="${job.location}">Location</span><br>
-                            <i class="bi bi-calendar"></i> <span th:text="${job.datePosted}">Date Posted</span><br>
-                            <i class="bi bi-briefcase-fill"></i> <span th:text="${job.experienceLevel}">Experience Level</span><br>
-                            <i class="bi bi-clock"></i> <span th:text="${job.jobType}">Job Type</span>
-                        </p>
-                    </div>
-                    <div class="card-footer bg-transparent">
-                        <a th:if="${job.url}" th:href="${job.url}" target="_blank" class="btn btn-sm btn-outline-primary w-100">
-                            <i class="bi bi-linkedin me-2"></i>View on LinkedIn
-                        </a>
+        <!-- Scraper Tab Content (hidden by default) -->
+        <div id="scraperTabContent" style="display: none;">
+            <!-- Scraper Configuration Form -->
+            <div class="row mb-4">
+                <div class="col-12">
+                    <div class="card">
+                        <div class="card-header bg-success bg-opacity-10">
+                            <h5 class="card-title mb-0">
+                                <i class="bi bi-cloud-download me-2"></i>Configure LinkedIn Scraper
+                            </h5>
+                        </div>
+                        <div class="card-body">
+                            <!-- Basic configuration - Always visible -->
+                            <div class="row g-3 mb-4">
+                                <div class="col-md-5">
+                                    <div class="form-floating">
+                                        <input type="text" class="form-control" id="keywords" placeholder="e.g. Java Developer">
+                                        <label for="keywords">Job Keywords or Title</label>
+                                    </div>
+                                    <div class="form-text">Enter job title, skills, or other keywords</div>
+                                </div>
+                                <div class="col-md-5">
+                                    <div class="form-floating">
+                                        <input type="text" class="form-control" id="location" placeholder="e.g. San Francisco">
+                                        <label for="location">Location</label>
+                                    </div>
+                                    <div class="form-text">Enter city, state, or "Remote"</div>
+                                </div>
+                                <div class="col-md-2">
+                                    <div class="d-grid h-100">
+                                        <button class="btn btn-success h-75" id="scrapeButton">
+                                            <i class="bi bi-cloud-download me-2"></i>Start Scraping
+                                        </button>
+                                    </div>
+                                </div>
+                            </div>
+                            
+                            <!-- Filter Options using Tabs for better organization -->
+                            <ul class="nav nav-tabs" id="scraperFilterTabs" role="tablist">
+                                <li class="nav-item" role="presentation">
+                                    <button class="nav-link active" id="basic-filters-tab" data-bs-toggle="tab" 
+                                            data-bs-target="#basic-filters" type="button" role="tab">
+                                        Basic Filters
+                                    </button>
+                                </li>
+                                <li class="nav-item" role="presentation">
+                                    <button class="nav-link" id="advanced-filters-tab" data-bs-toggle="tab" 
+                                            data-bs-target="#advanced-filters" type="button" role="tab">
+                                        Advanced Filters
+                                    </button>
+                                </li>
+                                <li class="nav-item" role="presentation">
+                                    <button class="nav-link" id="experience-filters-tab" data-bs-toggle="tab" 
+                                            data-bs-target="#experience-filters" type="button" role="tab">
+                                        Experience Levels
+                                    </button>
+                                </li>
+                            </ul>
+                            
+                            <!-- Tab Content -->
+                            <div class="tab-content p-3 border border-top-0 rounded-bottom bg-light" id="scraperFilterTabsContent">
+                                <!-- Basic Filters Tab -->
+                                <div class="tab-pane fade show active" id="basic-filters" role="tabpanel">
+                                    <div class="row g-3">
+                                        <div class="col-md-4">
+                                            <label for="pagesToScrape" class="form-label">
+                                                <i class="bi bi-file-earmark-text me-1"></i> Pages to Scrape
+                                            </label>
+                                            <div class="input-group">
+                                                <input type="number" class="form-control" id="pagesToScrape" 
+                                                    value="1" min="1" max="5">
+                                                <span class="input-group-text">page(s)</span>
+                                            </div>
+                                            <div class="form-text">Each page has ~25 jobs</div>
+                                        </div>
+                                        <div class="col-md-4">
+                                            <label for="daysOld" class="form-label">
+                                                <i class="bi bi-calendar me-1"></i> Job Age
+                                            </label>
+                                            <select class="form-select" id="daysOld">
+                                                <option value="1">Past 24 hours</option>
+                                                <option value="7" selected>Past week</option>
+                                                <option value="30">Past month</option>
+                                                <option value="0">Any time</option>
+                                            </select>
+                                            <div class="form-text">How recent the jobs should be</div>
+                                        </div>
+                                        <div class="col-md-4">
+                                            <label for="jobType" class="form-label">
+                                                <i class="bi bi-briefcase me-1"></i> Job Type
+                                            </label>
+                                            <select class="form-select" id="jobType">
+                                                <option value="">Any type</option>
+                                                <option value="FULL_TIME">Full-time</option>
+                                                <option value="PART_TIME">Part-time</option>
+                                                <option value="CONTRACT">Contract</option>
+                                                <option value="TEMPORARY">Temporary</option>
+                                                <option value="INTERNSHIP">Internship</option>
+                                            </select>
+                                            <div class="form-text">Employment type</div>
+                                        </div>
+                                        <div class="col-md-4">
+                                            <div class="form-check form-switch mt-4">
+                                                <input class="form-check-input" type="checkbox" id="remoteOnly">
+                                                <label class="form-check-label" for="remoteOnly">
+                                                    <i class="bi bi-house me-1"></i> Remote Jobs Only
+                                                </label>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                                
+                                <!-- Advanced Filters Tab -->
+                                <div class="tab-pane fade" id="advanced-filters" role="tabpanel">
+                                    <div class="row g-3">
+                                        <div class="col-md-6">
+                                            <label for="titleIncludeWords" class="form-label">
+                                                <i class="bi bi-check-circle me-1"></i> Include Job Titles With These Words
+                                            </label>
+                                            <input type="text" class="form-control" id="titleIncludeWords" 
+                                                   placeholder="E.g., senior, developer, remote">
+                                            <div class="form-text">
+                                                Jobs must contain at least one of these words in the title (comma-separated)
+                                            </div>
+                                        </div>
+                                        <div class="col-md-6">
+                                            <label for="titleExcludeWords" class="form-label">
+                                                <i class="bi bi-x-circle me-1"></i> Exclude Job Titles With These Words
+                                            </label>
+                                            <input type="text" class="form-control" id="titleExcludeWords" 
+                                                   placeholder="E.g., junior, intern, manager">
+                                            <div class="form-text">
+                                                Jobs containing any of these words in the title will be excluded (comma-separated)
+                                            </div>
+                                        </div>
+                                        <div class="col-md-6">
+                                            <label for="companyExcludeWords" class="form-label">
+                                                <i class="bi bi-building-x me-1"></i> Exclude Companies With These Words
+                                            </label>
+                                            <input type="text" class="form-control" id="companyExcludeWords" 
+                                                   placeholder="E.g., agency, startup, consulting">
+                                            <div class="form-text">
+                                                Jobs from companies containing these words will be excluded (comma-separated)
+                                            </div>
+                                        </div>
+                                        <div class="col-md-6">
+                                            <label for="descriptionExcludeWords" class="form-label">
+                                                <i class="bi bi-file-earmark-x me-1"></i> Exclude Job Descriptions With These Words
+                                            </label>
+                                            <input type="text" class="form-control" id="descriptionExcludeWords" 
+                                                   placeholder="E.g., clearance, security, PhD">
+                                            <div class="form-text">
+                                                Jobs containing these words in the description will be excluded (comma-separated)
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                                
+                                <!-- Experience Level Filters Tab -->
+                                <div class="tab-pane fade" id="experience-filters" role="tabpanel">
+                                    <p class="mb-3 text-muted">LinkedIn uses specific experience level categories. Select which levels to include or exclude in your search results.</p>
+                                    
+                                    <div class="row">
+                                        <div class="col-md-6">
+                                            <div class="card h-100">
+                                                <div class="card-header bg-success bg-opacity-10">
+                                                    <h6 class="mb-0">
+                                                        <i class="bi bi-check-lg me-1"></i> Include These Experience Levels
+                                                    </h6>
+                                                </div>
+                                                <div class="card-body">
+                                                    <p class="text-muted small">Jobs matching these experience levels will be included in results</p>
+                                                    
+                                                    <div class="form-check mb-2">
+                                                        <input class="form-check-input" type="checkbox" name="expInclude" value="INTERNSHIP" id="expIncludeInternship" checked>
+                                                        <label class="form-check-label" for="expIncludeInternship">Internship</label>
+                                                    </div>
+                                                    <div class="form-check mb-2">
+                                                        <input class="form-check-input" type="checkbox" name="expInclude" value="ENTRY_LEVEL" id="expIncludeEntry" checked>
+                                                        <label class="form-check-label" for="expIncludeEntry">Entry Level</label>
+                                                    </div>
+                                                    <div class="form-check mb-2">
+                                                        <input class="form-check-input" type="checkbox" name="expInclude" value="ASSOCIATE" id="expIncludeAssociate" checked>
+                                                        <label class="form-check-label" for="expIncludeAssociate">Associate</label>
+                                                    </div>
+                                                    <div class="form-check mb-2">
+                                                        <input class="form-check-input" type="checkbox" name="expInclude" value="MID_SENIOR" id="expIncludeMidSenior" checked>
+                                                        <label class="form-check-label" for="expIncludeMidSenior">Mid-Senior Level</label>
+                                                    </div>
+                                                    <div class="form-check mb-2">
+                                                        <input class="form-check-input" type="checkbox" name="expInclude" value="DIRECTOR" id="expIncludeDirector">
+                                                        <label class="form-check-label" for="expIncludeDirector">Director</label>
+                                                    </div>
+                                                    <div class="form-check mb-2">
+                                                        <input class="form-check-input" type="checkbox" name="expInclude" value="EXECUTIVE" id="expIncludeExecutive">
+                                                        <label class="form-check-label" for="expIncludeExecutive">Executive</label>
+                                                    </div>
+                                                    <div class="form-check mb-2">
+                                                        <input class="form-check-input" type="checkbox" name="expInclude" value="NOT_APPLICABLE" id="expIncludeNotApplicable" checked>
+                                                        <label class="form-check-label" for="expIncludeNotApplicable">Not Specified</label>
+                                                    </div>
+                                                    
+                                                    <div class="d-flex gap-2 mt-2">
+                                                        <button class="btn btn-sm btn-outline-secondary" id="selectAllInclude">
+                                                            <i class="bi bi-check-all me-1"></i> Select All
+                                                        </button>
+                                                        <button class="btn btn-sm btn-outline-secondary" id="clearAllInclude">
+                                                            <i class="bi bi-x-lg me-1"></i> Clear All
+                                                        </button>
+                                                    </div>
+                                                </div>
+                                            </div>
+                                        </div>
+                                        <div class="col-md-6">
+                                            <div class="card h-100">
+                                                <div class="card-header bg-danger bg-opacity-10">
+                                                    <h6 class="mb-0">
+                                                        <i class="bi bi-x-lg me-1"></i> Exclude These Experience Levels
+                                                    </h6>
+                                                </div>
+                                                <div class="card-body">
+                                                    <p class="text-muted small">Jobs matching these experience levels will be excluded from results</p>
+                                                    
+                                                    <div class="form-check mb-2">
+                                                        <input class="form-check-input" type="checkbox" name="expExclude" value="INTERNSHIP" id="expExcludeInternship">
+                                                        <label class="form-check-label" for="expExcludeInternship">Internship</label>
+                                                    </div>
+                                                    <div class="form-check mb-2">
+                                                        <input class="form-check-input" type="checkbox" name="expExclude" value="ENTRY_LEVEL" id="expExcludeEntry">
+                                                        <label class="form-check-label" for="expExcludeEntry">Entry Level</label>
+                                                    </div>
+                                                    <div class="form-check mb-2">
+                                                        <input class="form-check-input" type="checkbox" name="expExclude" value="ASSOCIATE" id="expExcludeAssociate">
+                                                        <label class="form-check-label" for="expExcludeAssociate">Associate</label>
+                                                    </div>
+                                                    <div class="form-check mb-2">
+                                                        <input class="form-check-input" type="checkbox" name="expExclude" value="MID_SENIOR" id="expExcludeMidSenior">
+                                                        <label class="form-check-label" for="expExcludeMidSenior">Mid-Senior Level</label>
+                                                    </div>
+                                                    <div class="form-check mb-2">
+                                                        <input class="form-check-input" type="checkbox" name="expExclude" value="DIRECTOR" id="expExcludeDirector" checked>
+                                                        <label class="form-check-label" for="expExcludeDirector">Director</label>
+                                                    </div>
+                                                    <div class="form-check mb-2">
+                                                        <input class="form-check-input" type="checkbox" name="expExclude" value="EXECUTIVE" id="expExcludeExecutive" checked>
+                                                        <label class="form-check-label" for="expExcludeExecutive">Executive</label>
+                                                    </div>
+                                                    <div class="form-check mb-2">
+                                                        <input class="form-check-input" type="checkbox" name="expExclude" value="NOT_APPLICABLE" id="expExcludeNotApplicable">
+                                                        <label class="form-check-label" for="expExcludeNotApplicable">Not Specified</label>
+                                                    </div>
+                                                    
+                                                    <div class="d-flex gap-2 mt-2">
+                                                        <button class="btn btn-sm btn-outline-secondary" id="selectAllExclude">
+                                                            <i class="bi bi-check-all me-1"></i> Select All
+                                                        </button>
+                                                        <button class="btn btn-sm btn-outline-secondary" id="clearAllExclude">
+                                                            <i class="bi bi-x-lg me-1"></i> Clear All
+                                                        </button>
+                                                    </div>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </div>
+                                    
+                                    <div class="alert alert-info mt-3">
+                                        <i class="bi bi-info-circle-fill me-2"></i>
+                                        <strong>Note:</strong> These experience level values match LinkedIn's internal categorization. Jobs can be in both include and exclude lists - exclude takes precedence.
+                                    </div>
+                                </div>
+                            
+                            <!-- Saved Configurations Section -->
+                            <div class="d-flex justify-content-between mt-3">
+                                <div class="dropdown">
+                                    <button class="btn btn-outline-secondary dropdown-toggle" type="button" id="savedConfigsDropdown" data-bs-toggle="dropdown" aria-expanded="false">
+                                        <i class="bi bi-folder me-1"></i> Saved Scraper Configs
+                                    </button>
+                                    <ul class="dropdown-menu" id="savedConfigsList" aria-labelledby="savedConfigsDropdown">
+                                        <li><span class="dropdown-item text-muted">Loading configurations...</span></li>
+                                    </ul>
+                                </div>
+                                
+                                <button class="btn btn-outline-success" id="saveConfigBtn" onclick="javascript:try { openSaveConfigModal(); } catch(e) { console.error('Inline handler error:', e); var modal = document.getElementById('saveConfigModal'); if(modal) { new bootstrap.Modal(modal).show(); } }">
+                                    <i class="bi bi-save me-1"></i> Save This Configuration
+                                </button>
+                            </div>
+                        </div>
                     </div>
                 </div>
             </div>
             
-            <!-- Empty state message -->
-            <div th:if="${jobs == null || jobs.empty}" class="col-12 text-center">
-                <div class="alert alert-info">
-                    <i class="bi bi-info-circle-fill me-2"></i>
-                    No jobs found. Use the form above to scrape LinkedIn for jobs.
+            <!-- Loading Indicator with improved feedback -->
+            <div id="loadingIndicator" class="card mb-4" style="display: none;">
+                <div class="card-body">
+                    <h5 class="card-title mb-3">Scraping LinkedIn Jobs...</h5>
+                    
+                    <!-- Progress bar -->
+                    <div class="progress mb-3" style="height: 25px;">
+                        <div id="scrapeProgressBar" class="progress-bar progress-bar-striped progress-bar-animated" 
+                             role="progressbar" style="width: 0%;" aria-valuenow="0" aria-valuemin="0" aria-valuemax="100">
+                            <span id="progressBarText">Starting scrape...</span>
+                        </div>
+                    </div>
+                    
+                    <!-- Status updates -->
+                    <div class="card">
+                        <div class="card-header">Status Updates</div>
+                        <ul id="statusUpdatesList" class="list-group list-group-flush" style="max-height: 200px; overflow-y: auto;">
+                            <!-- Status updates will be added here -->
+                        </ul>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- Recently Scraped Jobs -->
+            <div class="card mb-4">
+                <div class="card-header">
+                    <h5 class="mb-0">Recently Scraped Jobs</h5>
+                </div>
+                <div class="card-body">
+                    <div class="row" id="recentScrapedJobs">
+                        <!-- Jobs will be dynamically added here after scraping -->
+                        <div class="col-12 text-center">
+                            <p class="text-muted">No recently scraped jobs to display</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="modal fade" id="saveConfigModal" tabindex="-1" aria-labelledby="saveConfigModalLabel" aria-hidden="true">
+        <div class="modal-dialog">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title" id="saveConfigModalLabel">Save Scraper Configuration</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+                <div class="modal-body">
+                    <div class="mb-3">
+                        <label for="configName" class="form-label">Configuration Name</label>
+                        <input type="text" class="form-control" id="configName" placeholder="Enter a name for this scraper configuration">
+                    </div>
+                    <div id="saveConfigError" class="alert alert-danger d-none"></div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+                    <button type="button" class="btn btn-primary" id="saveConfigConfirmBtn">Save</button>
                 </div>
             </div>
         </div>
@@ -260,7 +536,21 @@
         </div>
     </footer>
     
+    <!-- Make sure jQuery and Bootstrap are loaded properly -->
+    <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/@popperjs/core@2.11.6/dist/umd/popper.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0-alpha1/dist/js/bootstrap.bundle.min.js"></script>
+    
+    <!-- Add console debug output for Bootstrap -->
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            console.log('DOM fully loaded');
+            console.log('Bootstrap available:', typeof bootstrap !== 'undefined');
+            console.log('Bootstrap Modal available:', typeof bootstrap !== 'undefined' && typeof bootstrap.Modal !== 'undefined');
+            console.log('jQuery available:', typeof jQuery !== 'undefined');
+        });
+    </script>
+    
     <script src="/js/main.js"></script>
 </body>
 </html>

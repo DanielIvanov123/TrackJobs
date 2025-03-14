@@ -2,7 +2,6 @@ package com.trackjobs.security;
 
 import com.trackjobs.model.User;
 import com.trackjobs.repository.UserRepository;
-import com.trackjobs.service.UserService;
 import org.springframework.security.core.authority.SimpleGrantedAuthority;
 import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.security.core.userdetails.UserDetailsService;
@@ -10,17 +9,16 @@ import org.springframework.security.core.userdetails.UsernameNotFoundException;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.time.LocalDateTime;
 import java.util.Collections;
 
 @Service
 public class CustomUserDetailsService implements UserDetailsService {
 
     private final UserRepository userRepository;
-    private final UserService userService;
 
-    public CustomUserDetailsService(UserRepository userRepository, UserService userService) {
+    public CustomUserDetailsService(UserRepository userRepository) {
         this.userRepository = userRepository;
-        this.userService = userService;
     }
 
     @Override
@@ -29,8 +27,9 @@ public class CustomUserDetailsService implements UserDetailsService {
         User user = userRepository.findByUsername(username)
                 .orElseThrow(() -> new UsernameNotFoundException("User not found with username: " + username));
 
-        // Update last login time
-        userService.updateLastLogin(username);
+        // Update last login time directly to avoid circular dependency
+        user.setLastLogin(LocalDateTime.now());
+        userRepository.save(user);
 
         return new org.springframework.security.core.userdetails.User(
                 user.getUsername(),

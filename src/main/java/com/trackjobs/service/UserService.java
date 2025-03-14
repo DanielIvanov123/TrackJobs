@@ -73,12 +73,31 @@ public class UserService {
     @Transactional(readOnly = true)
     public User getCurrentUser() {
         Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
-        if (authentication == null || !authentication.isAuthenticated() || 
-            "anonymousUser".equals(authentication.getPrincipal())) {
+        if (authentication == null) {
+            log.warn("No authentication found in security context");
+            return null;
+        }
+        
+        if (!authentication.isAuthenticated()) {
+            log.warn("Authentication exists but is not authenticated");
+            return null;
+        }
+        
+        if ("anonymousUser".equals(authentication.getPrincipal())) {
+            log.warn("Authentication is for anonymous user");
             return null;
         }
         
         String username = authentication.getName();
-        return userRepository.findByUsername(username).orElse(null);
+        log.debug("Getting user for authenticated username: {}", username);
+        
+        User user = userRepository.findByUsername(username).orElse(null);
+        if (user == null) {
+            log.warn("No user found for username: {}", username);
+        } else {
+            log.debug("Found user: ID={}, username={}", user.getId(), user.getUsername());
+        }
+        
+        return user;
     }
 }
