@@ -53,4 +53,15 @@ public interface JobRepository extends JpaRepository<Job, Long> {
     Optional<LocalDate> findMostRecentScrapeDateByUser(@Param("user") User user);
 
     void deleteByUser(User user);
+    
+    /**
+     * Find a job by ID and user
+     */
+    Optional<Job> findByIdAndUser(Long id, User user);
+
+    // Find jobs by user and status
+    List<Job> findByUserAndApplicationStatus(User user, Job.ApplicationStatus status);
+
+    // Find jobs by user ordered by status
+    List<Job> findByUserOrderByApplicationStatus(User user);
 }

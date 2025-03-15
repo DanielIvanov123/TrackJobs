@@ -10,21 +10,25 @@ import com.trackjobs.service.LinkedInScraperService;
 import lombok.extern.slf4j.Slf4j;
 import com.trackjobs.model.ScrapingProgress;
 import com.trackjobs.model.User;
+import com.trackjobs.repository.JobRepository;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.*;
+import org.springframework.http.HttpStatus;
 
 import java.time.Duration;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
 import java.util.Arrays;
+import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Optional;
 import java.util.UUID;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.ConcurrentHashMap;
@@ -46,6 +50,9 @@ public class JobController {
 
     @Autowired
     private UserService userService;
+
+    @Autowired
+    private JobRepository jobRepository;
     
     /**
      * Main page - display job listings
@@ -384,5 +391,125 @@ public class JobController {
         response.put("currentExperienceLevel", progress.getCurrentExperienceLevel());
         
         return ResponseEntity.ok(response);
+    }
+
+    /**
+     * API endpoint to get a single job by ID
+     */
+    @GetMapping("/api/jobs/{id}")
+    @ResponseBody
+    public ResponseEntity<Object> getJobById(@PathVariable Long id) {
+        try {
+            // Get current user
+            User currentUser = userService.getCurrentUser();
+            if (currentUser == null) {
+                return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body(Map.of(
+                    "success", false,
+                    "message", "You must be logged in to view job details"
+                ));
+            }
+            
+            // Fetch the job
+            Optional<Job> jobOpt = jobRepository.findByIdAndUser(id, currentUser);
+            
+            if (jobOpt.isPresent()) {
+                return ResponseEntity.ok(jobOpt.get());
+            } else {
+                return ResponseEntity.status(HttpStatus.NOT_FOUND).body(Map.of(
+                    "success", false,
+                    "message", "Job not found"
+                ));
+            }
+        } catch (Exception e) {
+            log.error("Error getting job details: {}", e.getMessage(), e);
+            return ResponseEntity.badRequest().body(Map.of(
+                "success", false,
+                "message", "Error retrieving job details: " + e.getMessage()
+            ));
+        }
+    }
+
+    /**
+     * API endpoint to update job application status
+     */
+    @PostMapping("/api/jobs/{id}/status")
+    @ResponseBody
+    public ResponseEntity<Object> updateJobStatus(
+            @PathVariable Long id,
+            @RequestBody Map<String, String> request) {
+        try {
+            // Get the current user
+            User currentUser = userService.getCurrentUser();
+            if (currentUser == null) {
+                return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body(Map.of(
+                    "success", false,
+                    "message", "You must be logged in to update job status"
+                ));
+            }
+            
+            // Validate input
+            String statusStr = request.get("status");
+            if (statusStr == null || statusStr.isEmpty()) {
+                return ResponseEntity.badRequest().body(Map.of(
+                    "success", false,
+                    "message", "Status is required"
+                ));
+            }
+            
+            // Find the job
+            Optional<Job> jobOpt = jobRepository.findByIdAndUser(id, currentUser);
+            if (jobOpt.isEmpty()) {
+                return ResponseEntity.status(HttpStatus.NOT_FOUND).body(Map.of(
+                    "success", false,
+                    "message", "Job not found"
+                ));
+            }
+            
+            // Update the status
+            Job job = jobOpt.get();
+            try {
+                Job.ApplicationStatus newStatus = Job.ApplicationStatus.valueOf(statusStr);
+                job.setApplicationStatus(newStatus);
+                jobRepository.save(job);
+                
+                return ResponseEntity.ok(Map.of(
+                    "success", true,
+                    "message", "Job status updated successfully",
+                    "job", job
+                ));
+            } catch (IllegalArgumentException e) {
+                return ResponseEntity.badRequest().body(Map.of(
+                    "success", false,
+                    "message", "Invalid status value: " + statusStr
+                ));
+            }
+        } catch (Exception e) {
+            log.error("Error updating job status: {}", e.getMessage(), e);
+            return ResponseEntity.badRequest().body(Map.of(
+                "success", false,
+                "message", "Error updating job status: " + e.getMessage()
+            ));
+        }
+    }
+
+    /**
+     * API endpoint to get jobs filtered by status
+     */
+    @GetMapping("/api/jobs/status/{status}")
+    @ResponseBody
+    public List<Job> getJobsByStatus(@PathVariable String status) {
+        // Get current user
+        User currentUser = userService.getCurrentUser();
+        if (currentUser == null) {
+            return Collections.emptyList();
+        }
+        
+        try {
+            Job.ApplicationStatus applicationStatus = Job.ApplicationStatus.valueOf(status);
+            return jobRepository.findByUserAndApplicationStatus(currentUser, applicationStatus);
+        } catch (IllegalArgumentException e) {
+            log.warn("Invalid status: {}", status);
+            return Collections.emptyList();
+        }
     }
 }

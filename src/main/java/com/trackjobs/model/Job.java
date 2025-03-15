@@ -5,6 +5,10 @@ import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
+import com.trackjobs.model.User;
+
+import javax.persistence.EnumType;
+import javax.persistence.Enumerated;
 
 import javax.persistence.*;
 import java.time.LocalDate;
@@ -58,6 +62,29 @@ public class Job {
     public void prePersist() {
         if (dateScraped == null) {
             dateScraped = LocalDate.now();
+        }
+    }
+
+    @Enumerated(EnumType.STRING)
+    @Column(name = "application_status")
+    private ApplicationStatus applicationStatus = ApplicationStatus.SAVED;
+
+    // Enum for application status
+    public enum ApplicationStatus {
+        SAVED("Saved"),
+        APPLIED("Applied"),
+        INTERVIEWING("Interviewing"),
+        REJECTED("Rejected"),
+        OFFER("Offer");
+        
+        private final String displayName;
+        
+        ApplicationStatus(String displayName) {
+            this.displayName = displayName;
+        }
+        
+        public String getDisplayName() {
+            return displayName;
         }
     }
 }

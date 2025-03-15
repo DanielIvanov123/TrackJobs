@@ -94,6 +94,7 @@ public class JobService {
         String jobType = (String) searchParams.get("jobType");
         Integer daysOld = (Integer) searchParams.get("daysOld");
         Boolean remoteOnly = (Boolean) searchParams.get("remoteOnly");
+        String applicationStatus = (String) searchParams.get("applicationStatus");
         
         // Start with getting jobs either filtered by keyword and location, or all jobs
         List<Job> filteredJobs;
@@ -110,13 +111,25 @@ public class JobService {
         }
         
         log.info("Initial search found {} jobs", filteredJobs.size());
-        
-        // Apply additional filters using stream operations
+
+        // Filter by application status if specified
+        if (applicationStatus != null && !applicationStatus.isEmpty() && !"ALL".equals(applicationStatus)) {
+            try {
+                Job.ApplicationStatus status = Job.ApplicationStatus.valueOf(applicationStatus);
+                filteredJobs = filteredJobs.stream()
+                    .filter(job -> job.getApplicationStatus() == status)
+                    .collect(Collectors.toList());
+                log.info("After application status filter: {} jobs", filteredJobs.size());
+            } catch (IllegalArgumentException e) {
+                log.warn("Invalid application status: {}", applicationStatus);
+            }
+        }
+
         // Filter by experience level if specified
         if (experienceLevel != null && !experienceLevel.isEmpty()) {
             filteredJobs = filteredJobs.stream()
                 .filter(job -> job.getExperienceLevel() != null && 
-                               job.getExperienceLevel().equalsIgnoreCase(experienceLevel))
+                              job.getExperienceLevel().equalsIgnoreCase(experienceLevel))
                 .collect(Collectors.toList());
             log.info("After experience level filter: {} jobs", filteredJobs.size());
         }

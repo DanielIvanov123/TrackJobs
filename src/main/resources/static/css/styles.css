@@ -46,3 +46,248 @@ body {
 footer {
     border-top: 1px solid #dee2e6;
 }
+/* Application status badges */
+/* Enhanced status styling */
+.status-badge {
+    font-size: 0.75rem;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.03em;
+    padding: 0.35em 0.65em;
+    border-radius: 0.25rem;
+    display: inline-flex;
+    align-items: center;
+    gap: 5px;
+}
+
+.status-SAVED {
+    background-color: #e9ecef;
+    color: #495057;
+    border: 1px solid #ced4da;
+}
+
+.status-APPLIED {
+    background-color: #cfe2ff;
+    color: #084298;
+    border: 1px solid #b6d4fe;
+}
+
+.status-INTERVIEWING {
+    background-color: #d1e7dd;
+    color: #0f5132;
+    border: 1px solid #badbcc;
+}
+
+.status-REJECTED {
+    background-color: #f8d7da;
+    color: #842029;
+    border: 1px solid #f5c2c7;
+}
+
+.status-OFFER {
+    background-color: #fff3cd;
+    color: #664d03;
+    border: 1px solid #ffecb5;
+}
+
+/* Card status styling */
+.job-card {
+    position: relative;
+    transition: transform 0.2s, box-shadow 0.2s;
+    overflow: hidden;
+}
+
+.job-card::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    height: 100%;
+    width: 6px;
+}
+
+.job-card.status-APPLIED::before {
+    background-color: #0d6efd;
+}
+
+.job-card.status-INTERVIEWING::before {
+    background-color: #198754;
+}
+
+.job-card.status-REJECTED::before {
+    background-color: #dc3545;
+}
+
+.job-card.status-OFFER::before {
+    background-color: #ffc107;
+}
+
+/* Status corner ribbon */
+.status-ribbon {
+    position: absolute;
+    top: 0;
+    right: 0;
+    padding: 0.25rem 1rem;
+    font-size: 0.75rem;
+    font-weight: 600;
+    text-transform: uppercase;
+    transform: translateX(30%) translateY(0%) rotate(45deg);
+    transform-origin: top left;
+    box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+    z-index: 1;
+    width: 100px;
+    text-align: center;
+}
+
+.status-ribbon.status-APPLIED {
+    background-color: #0d6efd;
+    color: white;
+}
+
+.status-ribbon.status-INTERVIEWING {
+    background-color: #198754;
+    color: white;
+}
+
+.status-ribbon.status-REJECTED {
+    background-color: #dc3545;
+    color: white;
+}
+
+.status-ribbon.status-OFFER {
+    background-color: #ffc107;
+    color: black;
+}
+
+/* Status selector in modal */
+.job-status-selector .btn {
+    text-align: left;
+    padding: 0.75rem 1rem;
+    border-width: 2px;
+    margin-bottom: 0.5rem;
+    border-radius: 0.375rem;
+}
+
+.job-status-selector .btn-check:checked + .btn {
+    font-weight: bold;
+}
+
+.job-status-selector .btn-check:checked + .btn-outline-secondary {
+    background-color: #6c757d;
+    color: white;
+}
+
+.job-status-selector .btn-check:checked + .btn-outline-primary {
+    background-color: #0d6efd;
+    color: white;
+}
+
+.job-status-selector .btn-check:checked + .btn-outline-success {
+    background-color: #198754;
+    color: white;
+}
+
+.job-status-selector .btn-check:checked + .btn-outline-warning {
+    background-color: #ffc107;
+    color: black;
+}
+
+.job-status-selector .btn-check:checked + .btn-outline-danger {
+    background-color: #dc3545;
+    color: white;
+}
+
+/* Status filter pills */
+.status-filter-pill {
+    border-radius: 50rem;
+    padding: 0.5rem 1rem;
+    display: inline-flex;
+    align-items: center;
+    gap: 0.5rem;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.2s;
+    font-size: 0.875rem;
+    border: 2px solid transparent;
+    margin-right: 0.5rem;
+    margin-bottom: 0.5rem;
+}
+
+.status-filter-pill:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+}
+
+.status-filter-pill.active {
+    border-color: #212529;
+}
+
+.status-filter-pill .count {
+    background: rgba(255,255,255,0.3);
+    border-radius: 50%;
+    width: 24px;
+    height: 24px;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 0.75rem;
+}
+
+.status-filter-pill.all-jobs {
+    background-color: #f8f9fa;
+    color: #212529;
+}
+
+.status-filter-pill.saved-jobs {
+    background-color: #e9ecef;
+    color: #495057;
+}
+
+.status-filter-pill.applied-jobs {
+    background-color: #cfe2ff;
+    color: #084298;
+}
+
+.status-filter-pill.interviewing-jobs {
+    background-color: #d1e7dd;
+    color: #0f5132;
+}
+
+.status-filter-pill.offer-jobs {
+    background-color: #fff3cd;
+    color: #664d03;
+}
+
+.status-filter-pill.rejected-jobs {
+    background-color: #f8d7da;
+    color: #842029;
+}
+/* Sort dropdown styling */
+.sort-container {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+}
+
+#sortOption {
+    min-width: 200px;
+    border-radius: 0.375rem;
+    border: 1px solid #ced4da;
+    padding: 0.375rem 0.75rem;
+    font-size: 0.875rem;
+    background-color: #f8f9fa;
+}
+
+#sortOption:focus {
+    border-color: #86b7fe;
+    box-shadow: 0 0 0 0.25rem rgba(13, 110, 253, 0.25);
+}
+
+/* Update job count badge to align with dropdown */
+#jobsCount {
+    font-size: 0.875rem;
+    min-width: 32px;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+}

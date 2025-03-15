@@ -92,6 +92,42 @@
                                     </button>
                                 </div>
                             </div>
+
+                            <!-- Job Status Selection - Button Group -->
+                            <div class="mb-4">
+                                <h5 class="mb-3">Application Status</h5>
+                                <div class="job-status-selector btn-group-vertical w-100" role="group" aria-label="Application status">
+                                    <input type="radio" class="btn-check" name="jobStatus" id="statusSaved" value="SAVED" autocomplete="off">
+                                    <label class="btn btn-outline-secondary d-flex align-items-center gap-2" for="statusSaved">
+                                        <i class="bi bi-bookmark"></i> Saved
+                                        <small class="text-muted ms-auto">Jobs you're interested in</small>
+                                    </label>
+
+                                    <input type="radio" class="btn-check" name="jobStatus" id="statusApplied" value="APPLIED" autocomplete="off">
+                                    <label class="btn btn-outline-primary d-flex align-items-center gap-2" for="statusApplied">
+                                        <i class="bi bi-send"></i> Applied
+                                        <small class="text-muted ms-auto">Application submitted</small>
+                                    </label>
+
+                                    <input type="radio" class="btn-check" name="jobStatus" id="statusInterviewing" value="INTERVIEWING" autocomplete="off">
+                                    <label class="btn btn-outline-success d-flex align-items-center gap-2" for="statusInterviewing">
+                                        <i class="bi bi-people"></i> Interviewing
+                                        <small class="text-muted ms-auto">In the interview process</small>
+                                    </label>
+
+                                    <input type="radio" class="btn-check" name="jobStatus" id="statusOffer" value="OFFER" autocomplete="off">
+                                    <label class="btn btn-outline-warning d-flex align-items-center gap-2" for="statusOffer">
+                                        <i class="bi bi-trophy"></i> Offer
+                                        <small class="text-muted ms-auto">You received an offer</small>
+                                    </label>
+
+                                    <input type="radio" class="btn-check" name="jobStatus" id="statusRejected" value="REJECTED" autocomplete="off">
+                                    <label class="btn btn-outline-danger d-flex align-items-center gap-2" for="statusRejected">
+                                        <i class="bi bi-x-circle"></i> Rejected
+                                        <small class="text-muted ms-auto">No longer being considered</small>
+                                    </label>
+                                </div>
+                            </div>
                             
                             <!-- Additional Search Filters -->
                             <div class="mt-3">
@@ -115,9 +151,9 @@
                                                 <select class="form-select" id="searchExperienceLevel">
                                                     <option value="">Any</option>
                                                     <option value="Internship">Internship</option>
-                                                    <option value="Junior">Entry Level</option>
+                                                    <option value="Entry level">Entry level</option>
                                                     <option value="Associate">Associate</option>
-                                                    <option value="Mid-level">Mid-Senior Level</option>
+                                                    <option value="Mid-Senior level">Mid-Senior level</option>
                                                     <option value="Director">Director</option>
                                                     <option value="Executive">Executive</option>
                                                     <option value="Not specified">Not specified</option>
@@ -153,16 +189,63 @@
             </div>
             
             <!-- Results Header -->
-            <div class="d-flex justify-content-between align-items-center mb-3">
-                <h4>Job Listings</h4>
-                <span class="badge bg-primary" id="jobsCount" th:text="${jobs != null ? jobs.size() : 0}">0</span>
+            <div class="card mb-3">
+                <div class="card-body p-3">
+                    <div class="d-flex justify-content-between align-items-center">
+                        <div>
+                            <h4 class="mb-0">Job Listings</h4>
+                            <small class="text-muted" id="jobsCountText">
+                                Showing <span id="jobsCount" th:text="${jobs != null ? jobs.size() : 0}">0</span> jobs
+                            </small>
+                        </div>
+                        
+                        <div class="sort-container">
+                            <label for="sortOption" class="form-label mb-0 me-2">Sort by:</label>
+                            <select class="form-select form-select-sm" id="sortOption" aria-label="Sort jobs">
+                                <option value="datePosted">Date (Newest)</option>
+                                <option value="datePostedAsc">Date (Oldest)</option>
+                                <option value="status">Application Status</option>
+                                <option value="company">Company Name</option>
+                                <option value="title">Job Title</option>
+                            </select>
+                        </div>
+
+                        <!-- Status filter pills -->
+                        <div class="status-filters mt-3">
+                            <div class="status-filter-pill all-jobs active" data-status="ALL">
+                                <i class="bi bi-grid"></i> All Jobs
+                                <span class="count" id="countAll">0</span>
+                            </div>
+                            <div class="status-filter-pill saved-jobs" data-status="SAVED">
+                                <i class="bi bi-bookmark"></i> Saved
+                                <span class="count" id="countSaved">0</span>
+                            </div>
+                            <div class="status-filter-pill applied-jobs" data-status="APPLIED">
+                                <i class="bi bi-send"></i> Applied
+                                <span class="count" id="countApplied">0</span>
+                            </div>
+                            <div class="status-filter-pill interviewing-jobs" data-status="INTERVIEWING">
+                                <i class="bi bi-people"></i> Interviewing
+                                <span class="count" id="countInterviewing">0</span>
+                            </div>
+                            <div class="status-filter-pill offer-jobs" data-status="OFFER">
+                                <i class="bi bi-trophy"></i> Offers
+                                <span class="count" id="countOffer">0</span>
+                            </div>
+                            <div class="status-filter-pill rejected-jobs" data-status="REJECTED">
+                                <i class="bi bi-x-circle"></i> Rejected
+                                <span class="count" id="countRejected">0</span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
             </div>
             
             <!-- Job Results -->
             <div class="row" id="jobsContainer">
                 <!-- Display jobs from the model -->
                 <div th:each="job : ${jobs}" class="col-md-4 mb-4">
-                    <div class="card h-100 job-card">
+                    <div class="card h-100 job-card" th:data-job-id="${job.id}">
                         <div class="card-body">
                             <h5 class="card-title" th:text="${job.title}">Job Title</h5>
                             <h6 class="card-subtitle mb-2 text-muted" th:text="${job.company}">Company</h6>
@@ -173,10 +256,16 @@
                                 <i class="bi bi-clock"></i> <span th:text="${job.jobType}">Job Type</span>
                             </p>
                         </div>
-                        <div class="card-footer bg-transparent">
-                            <a th:if="${job.url}" th:href="${job.url}" target="_blank" class="btn btn-sm btn-outline-primary w-100">
-                                <i class="bi bi-linkedin me-2"></i>View on LinkedIn
+                        <div class="card-footer bg-transparent d-flex justify-content-between">
+                            <button class="btn btn-sm btn-primary view-job-details-btn" th:data-job-id="${job.id}">
+                                <i class="bi bi-eye me-1"></i>View Details
+                            </button>
+                            <a th:if="${job.url}" th:href="${job.url}" target="_blank" class="btn btn-sm btn-outline-primary" onclick="event.stopPropagation();">
+                                <i class="bi bi-linkedin me-1"></i>LinkedIn
                             </a>
+                            <button th:unless="${job.url}" class="btn btn-sm btn-outline-secondary" disabled onclick="event.stopPropagation();">
+                                No URL Available
+                            </button>
                         </div>
                     </div>
                 </div>
@@ -535,6 +624,82 @@
             </div>
         </div>
     </div>
+
+    <!-- Job Details Modal -->
+    <div class="modal fade" id="jobDetailsModal" tabindex="-1" aria-labelledby="jobDetailsModalLabel" aria-hidden="true">
+        <div class="modal-dialog modal-lg">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title" id="jobDetailsModalLabel">Job Details</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+                <div class="modal-body">
+                    <div id="jobDetailsSpinner" class="text-center my-5">
+                        <div class="spinner-border text-primary" role="status">
+                            <span class="visually-hidden">Loading...</span>
+                        </div>
+                        <p class="mt-2">Loading job details...</p>
+                    </div>
+                    
+                    <div id="jobDetailsContent" style="display: none;">
+                        <div class="d-flex justify-content-between align-items-start mb-3">
+                            <div>
+                                <h3 id="jobDetailTitle">Job Title</h3>
+                                <h5 id="jobDetailCompany" class="text-muted">Company Name</h5>
+                            </div>
+                            <div>
+                                <span id="jobDetailExperienceLevel" class="badge bg-secondary">Experience Level</span>
+                            </div>
+                        </div>
+                        
+                        <div class="row mb-4">
+                            <div class="col-md-6">
+                                <p>
+                                    <i class="bi bi-geo-alt-fill"></i> 
+                                    <span id="jobDetailLocation">Location</span>
+                                </p>
+                            </div>
+                            <div class="col-md-6">
+                                <p>
+                                    <i class="bi bi-briefcase-fill"></i> 
+                                    <span id="jobDetailJobType">Job Type</span>
+                                </p>
+                            </div>
+                            <div class="col-md-6">
+                                <p>
+                                    <i class="bi bi-calendar"></i> 
+                                    Posted: <span id="jobDetailPosted">Date</span>
+                                </p>
+                            </div>
+                            <div class="col-md-6">
+                                <p>
+                                    <i class="bi bi-cloud-download"></i> 
+                                    Scraped: <span id="jobDetailScraped">Date</span>
+                                </p>
+                            </div>
+                        </div>
+                        
+                        <hr>
+                        
+                        <h5>Job Description</h5>
+                        <div id="jobDetailDescription" class="job-description mt-3">
+                            <!-- Description will be populated here -->
+                        </div>
+                    </div>
+                    
+                    <div id="jobDetailsError" class="alert alert-danger" style="display: none;">
+                        Error loading job details.
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <a id="jobDetailLinkedInLink" href="#" target="_blank" class="btn btn-primary">
+                        <i class="bi bi-linkedin me-2"></i>View on LinkedIn
+                    </a>
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
+                </div>
+            </div>
+        </div>
+    </div>
     
     <!-- Footer -->
     <footer class="bg-light py-3 mt-5">
@@ -545,21 +710,10 @@
         </div>
     </footer>
     
-    <!-- Make sure jQuery and Bootstrap are loaded properly -->
-    <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
-    <script src="https://cdn.jsdelivr.net/npm/@popperjs/core@2.11.6/dist/umd/popper.min.js"></script>
+    <!-- Make sure Bootstrap is loaded from the approved CDN -->
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0-alpha1/dist/js/bootstrap.bundle.min.js"></script>
-    
-    <!-- Add console debug output for Bootstrap -->
-    <script>
-        document.addEventListener('DOMContentLoaded', function() {
-            console.log('DOM fully loaded');
-            console.log('Bootstrap available:', typeof bootstrap !== 'undefined');
-            console.log('Bootstrap Modal available:', typeof bootstrap !== 'undefined' && typeof bootstrap.Modal !== 'undefined');
-            console.log('jQuery available:', typeof jQuery !== 'undefined');
-        });
-    </script>
-    
-    <script src="/js/main.js"></script>
+
+    <!-- Main application script -->
+    <script src="/js/app.js"></script>
 </body>
 </html>

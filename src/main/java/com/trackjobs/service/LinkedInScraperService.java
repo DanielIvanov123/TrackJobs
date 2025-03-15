@@ -577,8 +577,7 @@ public class LinkedInScraperService {
     private String mapLinkedInCodeToExperienceLevel(String code) {
         switch (code) {
             case "1": return "Internship";
-            case "2": return "Entry level"; 
-            case "3": return "Associate";
+            case "2": return "Associate";
             case "4": return "Mid-Senior level";
             case "5": return "Director";
             case "6": return "Executive";
