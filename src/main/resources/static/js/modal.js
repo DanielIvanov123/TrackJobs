@@ -1,92 +1,187 @@
 /**
  * modal.js - Job details modal functionality
+ * Optimized for modal performance and responsive UI
  */
 
-/**
- * Open the job details modal
- */
-function openJobDetailsModal(jobId) {
-    console.log('Opening modal for job ID:', jobId);
+(function() {
+    // Cache modal elements and state
+    let modalElement, spinner, content, errorMsg;
+    let currentJobId = null;
+    let modalInstance = null;
+    let isModalOpen = false;
     
-    // Get modal element
-    const modalElement = document.getElementById('jobDetailsModal');
-    if (!modalElement) {
-        console.error('Modal element not found');
-        return;
-    }
+    // Job data cache for faster reopening
+    const jobCache = {};
     
-    try {
-        // Show the modal using vanilla JS
-        const modalInstance = new bootstrap.Modal(modalElement);
-        modalInstance.show();
+    // Initialize on document ready
+    document.addEventListener('DOMContentLoaded', function() {
+        // Cache modal elements
+        modalElement = document.getElementById('jobDetailsModal');
+        spinner = document.getElementById('jobDetailsSpinner');
+        content = document.getElementById('jobDetailsContent');
+        errorMsg = document.getElementById('jobDetailsError');
         
-        // After modal is shown, load the job details
-        modalElement.addEventListener('shown.bs.modal', function onModalShown() {
-            // Remove the event listener to prevent multiple calls
-            modalElement.removeEventListener('shown.bs.modal', onModalShown);
+        // Add event listener for modal hidden
+        if (modalElement) {
+            modalElement.addEventListener('hidden.bs.modal', function() {
+                isModalOpen = false;
+            });
             
-            // Now load the job data
-            loadJobDetails(jobId);
-        }, { once: true }); // Use once:true to ensure it only runs once
-    } catch (error) {
-        console.error('Error showing modal:', error);
-        // Try direct approach if bootstrap Modal fails
-        modalElement.classList.add('show');
-        modalElement.style.display = 'block';
+            modalElement.addEventListener('shown.bs.modal', function() {
+                isModalOpen = true;
+            });
+        }
+    });
+    
+    /**
+     * Open the job details modal with optimized loading
+     * @param {String|Number} jobId - ID of the job to display
+     */
+    function openJobDetailsModal(jobId) {
+        console.log('Opening modal for job ID:', jobId);
         
-        // Add backdrop
-        const backdrop = document.createElement('div');
-        backdrop.className = 'modal-backdrop fade show';
-        document.body.appendChild(backdrop);
+        // Prevent opening the same job again
+        if (isModalOpen && currentJobId === jobId) {
+            console.log('Modal already open for this job');
+            return;
+        }
         
-        // Load job details directly
-        loadJobDetails(jobId);
+        currentJobId = jobId;
+        
+        // Get modal element if not already cached
+        if (!modalElement) {
+            modalElement = document.getElementById('jobDetailsModal');
+            spinner = document.getElementById('jobDetailsSpinner');
+            content = document.getElementById('jobDetailsContent');
+            errorMsg = document.getElementById('jobDetailsError');
+        }
+        
+        if (!modalElement) {
+            console.error('Modal element not found');
+            showAlert('Error: Could not open job details', 'danger');
+            return;
+        }
+        
+        try {
+            // Show the modal using Bootstrap
+            if (typeof bootstrap !== 'undefined' && bootstrap.Modal) {
+                try {
+                    // Try to get existing instance
+                    modalInstance = bootstrap.Modal.getInstance(modalElement);
+                    
+                    if (!modalInstance) {
+                        // Create new instance if none exists
+                        modalInstance = new bootstrap.Modal(modalElement, {
+                            backdrop: true,
+                            keyboard: true,
+                            focus: true
+                        });
+                    }
+                    
+                    // Handle modal lifecycle
+                    modalElement.addEventListener('shown.bs.modal', function onModalShown() {
+                        modalElement.removeEventListener('shown.bs.modal', onModalShown);
+                        loadJobDetails(jobId);
+                    }, { once: true });
+                    
+                    modalInstance.show();
+                } catch (error) {
+                    console.error('Error with Bootstrap modal:', error);
+                    // Fall back to manual approach
+                    manuallyOpenModal();
+                }
+            } else {
+                console.warn('Bootstrap not available, using manual modal opening');
+                manuallyOpenModal();
+            }
+        } catch (error) {
+            console.error('Error showing modal:', error);
+            // Fall back to direct approach
+            manuallyOpenModal();
+        }
+        
+        /**
+         * Manual fallback for opening the modal
+         */
+        function manuallyOpenModal() {
+            modalElement.classList.add('show');
+            modalElement.style.display = 'block';
+            document.body.classList.add('modal-open');
+            
+            // Add backdrop
+            let backdrop = document.querySelector('.modal-backdrop');
+            if (!backdrop) {
+                backdrop = document.createElement('div');
+                backdrop.className = 'modal-backdrop fade show';
+                document.body.appendChild(backdrop);
+            }
+            
+            // Load job details directly
+            setTimeout(() => {
+                loadJobDetails(jobId);
+            }, 50);
+        }
     }
-}
-
-/**
- * Load job details data into an already-open modal
- */
-function loadJobDetails(jobId) {
-    console.log('Loading job details for ID:', jobId);
     
-    // Get elements
-    const spinner = document.getElementById('jobDetailsSpinner');
-    const content = document.getElementById('jobDetailsContent');
-    const errorMsg = document.getElementById('jobDetailsError');
-    
-    // Reset state - safely
-    if (spinner) spinner.style.display = 'block';
-    if (content) content.style.display = 'none';
-    if (errorMsg) errorMsg.style.display = 'none';
-    
-    // Get CSRF token
-    const csrfToken = getCsrfToken();
-    const csrfHeader = getCsrfHeader();
-    
-    if (!csrfToken || !csrfHeader) {
-        console.error('CSRF tokens not found');
-        if (errorMsg) {
-            errorMsg.textContent = 'Error: Security tokens not found';
-            errorMsg.style.display = 'block';
+    /**
+     * Load job details data into an already-open modal
+     * @param {String|Number} jobId - ID of the job to load
+     */
+    function loadJobDetails(jobId) {
+        console.log('Loading job details for ID:', jobId);
+        
+        // Reset modal state
+        if (spinner) spinner.style.display = 'block';
+        if (content) content.style.display = 'none';
+        if (errorMsg) errorMsg.style.display = 'none';
+        
+        // Check cache first
+        if (jobCache[jobId]) {
+            console.log('Using cached job data');
+            displayJobDetails(jobCache[jobId]);
+            return;
         }
-        if (spinner) spinner.style.display = 'none';
-        return;
+        
+        // Get CSRF token
+        const csrfToken = getCsrfToken();
+        const csrfHeader = getCsrfHeader();
+        
+        if (!csrfToken || !csrfHeader) {
+            console.error('CSRF tokens not found');
+            showModalError('Security tokens not found');
+            return;
+        }
+        
+        // Fetch job details
+        fetch(`/api/jobs/${jobId}`, {
+            headers: {
+                [csrfHeader]: csrfToken
+            }
+        })
+        .then(response => {
+            if (!response.ok) {
+                throw new Error(`HTTP error ${response.status}`);
+            }
+            return response.json();
+        })
+        .then(job => {
+            // Cache the job data
+            jobCache[jobId] = job;
+            
+            // Display the job details
+            displayJobDetails(job);
+        })
+        .catch(error => {
+            console.error('Error fetching job details:', error);
+            showModalError(`Error loading job details: ${error.message}`);
+        });
     }
     
-    // Fetch job details
-    fetch(`/api/jobs/${jobId}`, {
-        headers: {
-            [csrfHeader]: csrfToken
-        }
-    })
-    .then(response => {
-        if (!response.ok) {
-            throw new Error(`HTTP error ${response.status}`);
-        }
-        return response.json();
-    })
-    .then(job => {
+    /**
+     * Display job details in the modal
+     * @param {Object} job - Job data object
+     */
+    function displayJobDetails(job) {
         // Update elements if they exist
         setTextContentSafely('jobDetailTitle', job.title || 'Untitled Job');
         setTextContentSafely('jobDetailCompany', job.company || 'Unknown Company');
@@ -98,19 +193,27 @@ function loadJobDetails(jobId) {
         
         // Set status selection in button group
         const status = job.applicationStatus || 'SAVED';
-        document.querySelectorAll('.job-status-selector input[name="jobStatus"]').forEach(radio => {
-            if (radio) {
-                radio.checked = radio.value === status;
-            }
-        });
+        const statusRadios = document.querySelectorAll('.job-status-selector input[name="jobStatus"]');
         
-        // Add event listeners to status radio buttons
-        document.querySelectorAll('.job-status-selector input[name="jobStatus"]').forEach(radio => {
-            if (radio) {
-                radio.addEventListener('change', function() {
+        if (statusRadios.length > 0) {
+            // Clear previous event listeners using cloneNode
+            statusRadios.forEach(radio => {
+                const newRadio = radio.cloneNode(true);
+                radio.parentNode.replaceChild(newRadio, radio);
+                
+                // Set checked state
+                newRadio.checked = newRadio.value === status;
+                
+                // Add new event listener
+                newRadio.addEventListener('change', function() {
                     if (this.checked) {
-                        updateJobStatus(jobId, this.value)
+                        updateJobStatus(job.id, this.value)
                             .then(() => {
+                                // Update the job in cache
+                                if (jobCache[job.id]) {
+                                    jobCache[job.id].applicationStatus = this.value;
+                                }
+                                
                                 // Show success message
                                 showAlert(`Job status updated to ${getStatusDisplayName(this.value)}`, 'success');
                                 
@@ -125,10 +228,10 @@ function loadJobDetails(jobId) {
                             });
                     }
                 });
-            }
-        });
+            });
+        }
         
-        // Format description
+        // Format description with optimized approach
         const descElement = document.getElementById('jobDetailDescription');
         if (descElement) {
             if (job.description && job.description.trim()) {
@@ -152,32 +255,58 @@ function loadJobDetails(jobId) {
         // Show content, hide spinner
         if (spinner) spinner.style.display = 'none';
         if (content) content.style.display = 'block';
-    })
-    .catch(error => {
-        console.error('Error fetching job details:', error);
+    }
+    
+    /**
+     * Show error message in modal
+     * @param {String} message - Error message to display
+     */
+    function showModalError(message) {
         if (spinner) spinner.style.display = 'none';
+        if (content) content.style.display = 'none';
+        
         if (errorMsg) {
-            errorMsg.textContent = `Error loading job details: ${error.message}`;
+            errorMsg.textContent = message;
             errorMsg.style.display = 'block';
+        } else {
+            console.error('Modal error element not found');
+            // Fallback - create error element
+            const modalBody = document.querySelector('#jobDetailsModal .modal-body');
+            if (modalBody) {
+                const errorDiv = document.createElement('div');
+                errorDiv.className = 'alert alert-danger';
+                errorDiv.textContent = message;
+                modalBody.appendChild(errorDiv);
+            }
         }
-    });
-}
-
-/**
- * Format job description into well-structured paragraphs
- */
-function formatJobDescription(description) {
-    if (!description) return '';
+    }
     
-    // Normalize line breaks
-    let desc = description.replace(/\r\n/g, '\n');
+    /**
+     * Format job description into well-structured paragraphs with optimized rendering
+     * @param {String} description - Raw job description text
+     * @return {String} Formatted HTML for the description
+     */
+    function formatJobDescription(description) {
+        if (!description) return '';
+        
+        // Use a more performant approach to text processing
+        const normalizedDesc = description.replace(/\r\n/g, '\n');
+        
+        // Use a documentFragment for building paragraphs
+        const fragment = document.createElement('div');
+        
+        // Split by double line breaks to find natural paragraphs
+        const paragraphs = normalizedDesc.split(/\n\s*\n/);
+        
+        // Process paragraphs in batches using a single operation
+        const html = paragraphs
+            .filter(p => p.trim().length > 0)
+            .map(p => `<p>${p.trim().replace(/\n/g, '<br>')}</p>`)
+            .join('');
+        
+        return html;
+    }
     
-    // Split by double line breaks to find natural paragraphs
-    const paragraphs = desc.split(/\n\s*\n/);
-    
-    // Create HTML with proper paragraphs
-    return paragraphs
-        .filter(p => p.trim().length > 0)
-        .map(p => `<p>${p.trim().replace(/\n/g, '<br>')}</p>`)
-        .join('');
-}
+    // Expose function to global scope
+    window.openJobDetailsModal = openJobDetailsModal;
+})();

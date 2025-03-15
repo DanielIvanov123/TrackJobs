@@ -1,5 +1,6 @@
 /**
  * scraper.js - LinkedIn scraper functionality
+ * Handles job scraping configuration and execution
  */
 
 // Reference DOM elements when document is ready
@@ -10,6 +11,8 @@ let experienceLevelProgress, pageProgress, recentScrapedJobsContainer;
 let saveConfigBtn, saveConfigModalEl;
 
 document.addEventListener('DOMContentLoaded', function() {
+    console.log('Initializing scraper functionality');
+    
     // Scraper tab elements
     scrapeButton = document.getElementById('scrapeButton');
     keywordsInput = document.getElementById('keywords');
@@ -52,10 +55,14 @@ document.addEventListener('DOMContentLoaded', function() {
             }
             scrapeJobs();
         });
+        console.log('Scrape button listener attached');
+    } else {
+        console.error('Scrape button not found');
     }
     
     if (saveConfigBtn) {
         saveConfigBtn.addEventListener('click', openSaveConfigModal);
+        console.log('Save config button listener attached');
     }
     
     // Add event listener to save config button
@@ -83,17 +90,23 @@ document.addEventListener('DOMContentLoaded', function() {
     }
     
     // Setup experience level selection buttons
-    document.getElementById('selectAllInclude')?.addEventListener('click', function() {
-        document.querySelectorAll('input[name="expInclude"]').forEach(checkbox => {
-            checkbox.checked = true;
+    const selectAllIncludeBtn = document.getElementById('selectAllInclude');
+    if (selectAllIncludeBtn) {
+        selectAllIncludeBtn.addEventListener('click', function() {
+            document.querySelectorAll('input[name="expInclude"]').forEach(checkbox => {
+                checkbox.checked = true;
+            });
         });
-    });
+    }
 
-    document.getElementById('clearAllInclude')?.addEventListener('click', function() {
-        document.querySelectorAll('input[name="expInclude"]').forEach(checkbox => {
-            checkbox.checked = false;
+    const clearAllIncludeBtn = document.getElementById('clearAllInclude');
+    if (clearAllIncludeBtn) {
+        clearAllIncludeBtn.addEventListener('click', function() {
+            document.querySelectorAll('input[name="expInclude"]').forEach(checkbox => {
+                checkbox.checked = false;
+            });
         });
-    });
+    }
     
     // Set default experience levels if no config is loaded
     if (!document.querySelector('input[name="expInclude"]:checked')) {
@@ -108,8 +121,8 @@ function validateScraperForm() {
     let isValid = true;
     
     // Reset previous validation styling
-    keywordsInput?.classList.remove('is-invalid');
-    locationInput?.classList.remove('is-invalid');
+    if (keywordsInput) keywordsInput.classList.remove('is-invalid');
+    if (locationInput) locationInput.classList.remove('is-invalid');
     
     // Check keywords
     if (keywordsInput && !keywordsInput.value.trim()) {
@@ -160,6 +173,8 @@ function getExperienceLevelFilters() {
  * Set default experience level checkboxes
  */
 function setDefaultExperienceLevels() {
+    console.log('Setting default experience levels');
+    
     // Default to including entry to mid-senior levels
     document.querySelectorAll('input[name="expInclude"]').forEach(checkbox => {
         const value = checkbox.value;
@@ -247,8 +262,13 @@ function scrapeJobs() {
         pageProgress.textContent = 'Pages: 0/0';
     }
     
-    loadingIndicator.style.display = 'block';
-    scrapeButton.disabled = true;
+    if (loadingIndicator) {
+        loadingIndicator.style.display = 'block';
+    }
+    
+    if (scrapeButton) {
+        scrapeButton.disabled = true;
+    }
     
     // Define polling variables
     let pollInterval = null;
@@ -496,6 +516,8 @@ function fetchRecentlyScrapedJobs(csrfToken, csrfHeader) {
         // Display the recent jobs
         if (typeof displayRecentScrapedJobs === 'function') {
             displayRecentScrapedJobs(jobs);
+        } else {
+            console.error('displayRecentScrapedJobs function not found');
         }
         addStatusUpdate(`Found ${jobs.length} recently scraped jobs.`);
     })
@@ -524,37 +546,44 @@ function openSaveConfigModal() {
         saveConfigError.textContent = '';
     }
     
-    // Show modal using the global variable
-    if (typeof bootstrap !== 'undefined' && saveConfigModalEl) {
+    // Show modal
+    if (typeof bootstrap !== 'undefined' && bootstrap.Modal) {
         try {
-            console.log('Attempting to show modal');
-            const modal = new bootstrap.Modal(saveConfigModalEl);
+            console.log('Attempting to show modal using Bootstrap');
+            const modal = new bootstrap.Modal(document.getElementById('saveConfigModal'));
             modal.show();
         } catch (error) {
-            console.error('Error showing modal:', error);
+            console.error('Error showing modal with Bootstrap:', error);
             
-            // Fallback: try to use jQuery if Bootstrap's show() method fails
-            try {
-                $('#saveConfigModal').modal('show');
-            } catch (jqueryError) {
-                console.error('Fallback jQuery method also failed:', jqueryError);
+            // Fallback approach
+            const modalEl = document.getElementById('saveConfigModal');
+            if (modalEl) {
+                modalEl.classList.add('show');
+                modalEl.style.display = 'block';
                 
-                // Last resort: direct DOM manipulation
-                const modalEl = document.getElementById('saveConfigModal');
-                if (modalEl) {
-                    modalEl.classList.add('show');
-                    modalEl.style.display = 'block';
-                    document.body.classList.add('modal-open');
-                    
-                    // Create backdrop
-                    const backdrop = document.createElement('div');
+                // Add backdrop
+                let backdrop = document.querySelector('.modal-backdrop');
+                if (!backdrop) {
+                    backdrop = document.createElement('div');
                     backdrop.className = 'modal-backdrop fade show';
                     document.body.appendChild(backdrop);
                 }
             }
         }
     } else {
-        console.error('Bootstrap or modal element not available');
+        console.error('Bootstrap is not available');
+        
+        // Manual fallback
+        const modalEl = document.getElementById('saveConfigModal');
+        if (modalEl) {
+            modalEl.classList.add('show');
+            modalEl.style.display = 'block';
+            
+            // Add backdrop
+            const backdrop = document.createElement('div');
+            backdrop.className = 'modal-backdrop fade show';
+            document.body.appendChild(backdrop);
+        }
     }
 }
 
@@ -644,17 +673,19 @@ function saveCurrentConfig() {
         if (data.success) {
             // Close modal using Bootstrap if available
             try {
-                if (typeof bootstrap !== 'undefined' && saveConfigModalEl) {
-                    const modal = bootstrap.Modal.getInstance(saveConfigModalEl);
-                    if (modal) {
-                        modal.hide();
+                const modal = document.getElementById('saveConfigModal');
+                if (modal && typeof bootstrap !== 'undefined' && bootstrap.Modal) {
+                    const bsModal = bootstrap.Modal.getInstance(modal);
+                    if (bsModal) {
+                        bsModal.hide();
                     } else {
-                        const newModal = new bootstrap.Modal(saveConfigModalEl);
+                        const newModal = new bootstrap.Modal(modal);
                         newModal.hide();
                     }
                 } else {
                     // Fallback close
-                    document.getElementById('saveConfigModal')?.classList.remove('show');
+                    modal.classList.remove('show');
+                    modal.style.display = 'none';
                     document.querySelector('.modal-backdrop')?.remove();
                 }
             } catch (e) {
@@ -740,6 +771,7 @@ function loadSavedConfigs() {
                 </div>
                 <small class="text-muted">${escapeHtml(config.keywords)} in ${escapeHtml(config.location)}</small>
             `;
+            
             link.addEventListener('click', function(e) {
                 e.preventDefault();
                 loadConfig(config.id);
@@ -772,7 +804,10 @@ function loadConfig(configId) {
     if (typeof showScraperTab === 'function') {
         showScraperTab();
     } else {
-        document.getElementById('scraperTabLink')?.click();
+        const scraperTabLink = document.getElementById('scraperTabLink');
+        if (scraperTabLink) {
+            scraperTabLink.click();
+        }
     }
     
     // Get CSRF token from meta tag
