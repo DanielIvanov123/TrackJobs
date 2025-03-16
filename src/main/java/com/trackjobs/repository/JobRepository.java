@@ -64,4 +64,10 @@ public interface JobRepository extends JpaRepository<Job, Long> {
 
     // Find jobs by user ordered by status
     List<Job> findByUserOrderByApplicationStatus(User user);
+
+    /**
+         * Find jobs with SAVED status or null status (which should be considered SAVED)
+         */
+        @Query("SELECT j FROM Job j WHERE j.user = :user AND (j.applicationStatus = 'SAVED' OR j.applicationStatus IS NULL)")
+        List<Job> findByUserAndSavedStatus(@Param("user") User user);
 }

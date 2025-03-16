@@ -3,10 +3,14 @@ package com.trackjobs.service;
 import com.trackjobs.model.User;
 import com.trackjobs.repository.JobRepository;
 import com.trackjobs.repository.UserRepository;
-import lombok.RequiredArgsConstructor;
+import com.trackjobs.service.ResumeService;
+
 import lombok.extern.slf4j.Slf4j;
+import com.trackjobs.repository.ApiKeyRepository;
+
 import com.trackjobs.repository.ScraperConfigRepository;
 
+import org.springframework.context.annotation.Lazy;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.crypto.password.PasswordEncoder;
@@ -17,7 +21,6 @@ import java.time.LocalDateTime;
 import java.util.Optional;
 
 @Service
-@RequiredArgsConstructor
 @Slf4j
 public class UserService {
 
@@ -25,6 +28,28 @@ public class UserService {
     private final PasswordEncoder passwordEncoder;
     private final JobRepository jobRepository;
     private final ScraperConfigRepository scraperConfigRepository;
+    
+    // Use @Lazy to break circular dependency
+    private final ResumeService resumeService;
+    
+    // API Key Repository to handle API key deletion
+    private final ApiKeyRepository apiKeyRepository;
+
+    public UserService(
+        UserRepository userRepository,
+        PasswordEncoder passwordEncoder,
+        JobRepository jobRepository,
+        ScraperConfigRepository scraperConfigRepository,
+        @Lazy ResumeService resumeService,
+        ApiKeyRepository apiKeyRepository) {
+            
+        this.userRepository = userRepository;
+        this.passwordEncoder = passwordEncoder;
+        this.jobRepository = jobRepository;
+        this.scraperConfigRepository = scraperConfigRepository;
+        this.resumeService = resumeService;
+        this.apiKeyRepository = apiKeyRepository;
+    }
 
     /**
      * Find a user by username
@@ -62,17 +87,6 @@ public class UserService {
     }
 
     /**
-     * Update last login time for a user
-     */
-    @Transactional
-    public void updateLastLogin(String username) {
-        userRepository.findByUsername(username).ifPresent(user -> {
-            user.setLastLogin(LocalDateTime.now());
-            userRepository.save(user);
-        });
-    }
-
-    /**
      * Get the current authenticated user
      */
     @Transactional(readOnly = true)
@@ -105,6 +119,7 @@ public class UserService {
         
         return user;
     }
+    
     /**
      * Wipe all data for the current authenticated user
      * This is a destructive operation that removes all user data but keeps the account
@@ -122,10 +137,18 @@ public class UserService {
         scraperConfigRepository.deleteByUser(currentUser);
         log.info("Deleted all scraper configurations for user: {}", currentUser.getUsername());
         
+        // Delete all resumes
+        resumeService.deleteAllResumesForUser(currentUser);
+        log.info("Deleted all resumes for user: {}", currentUser.getUsername());
+        
+        // Delete all API keys
+        apiKeyRepository.deleteByUser(currentUser);
+        log.info("Deleted all API keys for user: {}", currentUser.getUsername());
+        
         // Delete all jobs
         jobRepository.deleteByUser(currentUser);
         log.info("Deleted all jobs for user: {}", currentUser.getUsername());
         
         log.warn("User data wipe completed for: {}", currentUser.getUsername());
-}
+    }
 }

@@ -14,6 +14,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.time.LocalDate;
+import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
 import java.util.Map;
@@ -96,49 +97,98 @@ public class JobService {
         Boolean remoteOnly = (Boolean) searchParams.get("remoteOnly");
         String applicationStatus = (String) searchParams.get("applicationStatus");
         
-        // Start with getting jobs either filtered by keyword and location, or all jobs
-        List<Job> filteredJobs;
-        if (keywords != null && !keywords.isEmpty() && 
-            location != null && !location.isEmpty()) {
-            filteredJobs = jobRepository.findByUserAndKeywordAndLocation(currentUser, keywords, location);
-        } else if (keywords != null && !keywords.isEmpty()) {
-            filteredJobs = jobRepository.findByUserAndTitleContainingIgnoreCaseOrCompanyContainingIgnoreCase(
-                currentUser, keywords, keywords);
-        } else if (location != null && !location.isEmpty()) {
-            filteredJobs = jobRepository.findByUserAndLocationContainingIgnoreCase(currentUser, location);
-        } else {
-            filteredJobs = jobRepository.findByUser(currentUser);
+        log.info("Advanced search with params - Keywords: '{}', Location: '{}', Experience Level: '{}', " +
+                "Job Type: '{}', Days Old: {}, Remote Only: {}, Application Status: '{}'", 
+                keywords, location, experienceLevel, jobType, daysOld, remoteOnly, applicationStatus);
+        
+        // For ALL status (or null/empty status param), just get all jobs without status filtering 
+        if (applicationStatus == null || applicationStatus.isEmpty() || "ALL".equals(applicationStatus)) {
+            log.info("Getting all jobs without status filtering");
+            
+            // Start with getting jobs either filtered by keyword and location, or all jobs
+            List<Job> allJobs;
+            if (!isBlank(keywords) && !isBlank(location)) {
+                allJobs = jobRepository.findByUserAndKeywordAndLocation(currentUser, keywords, location);
+            } else if (!isBlank(keywords)) {
+                allJobs = jobRepository.findByUserAndTitleContainingIgnoreCaseOrCompanyContainingIgnoreCase(
+                    currentUser, keywords, keywords);
+            } else if (!isBlank(location)) {
+                allJobs = jobRepository.findByUserAndLocationContainingIgnoreCase(currentUser, location);
+            } else {
+                allJobs = jobRepository.findByUser(currentUser);
+            }
+            
+            log.info("Initial search found {} jobs total (all statuses)", allJobs.size());
+            
+            // Only apply non-status filters
+            return applyNonStatusFilters(allJobs, searchParams);
         }
         
-        log.info("Initial search found {} jobs", filteredJobs.size());
-
-        // Filter by application status if specified
-        if (applicationStatus != null && !applicationStatus.isEmpty() && !"ALL".equals(applicationStatus)) {
-            try {
-                Job.ApplicationStatus status = Job.ApplicationStatus.valueOf(applicationStatus);
-                filteredJobs = filteredJobs.stream()
-                    .filter(job -> job.getApplicationStatus() == status)
-                    .collect(Collectors.toList());
-                log.info("After application status filter: {} jobs", filteredJobs.size());
-            } catch (IllegalArgumentException e) {
-                log.warn("Invalid application status: {}", applicationStatus);
+        // If specific status filter is specified (not "ALL"), handle that case
+        try {
+            // Special case for SAVED status (include jobs with null status too)
+            if ("SAVED".equals(applicationStatus)) {
+                log.info("Filtering by SAVED status (including null status)");
+                List<Job> savedJobs = jobRepository.findByUserAndSavedStatus(currentUser);
+                
+                // Apply additional filters if needed
+                if (!isBlank(keywords) || !isBlank(location) || !isBlank(experienceLevel) || 
+                    !isBlank(jobType) || daysOld > 0 || remoteOnly) {
+                    
+                    return applyNonStatusFilters(savedJobs, searchParams);
+                }
+                
+                log.info("Returning {} jobs with SAVED status", savedJobs.size());
+                return savedJobs;
             }
+            
+            // Normal case for other statuses
+            Job.ApplicationStatus status = Job.ApplicationStatus.valueOf(applicationStatus);
+            log.info("Filtering directly by application status: {}", status);
+            
+            // Get jobs with the requested status directly from the repository
+            List<Job> statusFilteredJobs = jobRepository.findByUserAndApplicationStatus(currentUser, status);
+            
+            // Apply additional filters if needed
+            if (!isBlank(keywords) || !isBlank(location) || !isBlank(experienceLevel) || 
+                !isBlank(jobType) || daysOld > 0 || remoteOnly) {
+                
+                return applyNonStatusFilters(statusFilteredJobs, searchParams);
+            }
+            
+            log.info("Returning {} jobs with status {}", statusFilteredJobs.size(), status);
+            return statusFilteredJobs;
+        } catch (IllegalArgumentException e) {
+            log.warn("Invalid application status: {}", applicationStatus);
+            
+            // Fall back to all jobs search if status is invalid
+            List<Job> allJobs = jobRepository.findByUser(currentUser);
+            return applyNonStatusFilters(allJobs, searchParams);
         }
+    }
 
+    private List<Job> applyNonStatusFilters(List<Job> jobs, Map<String, Object> searchParams) {
+        String experienceLevel = (String) searchParams.get("experienceLevel");
+        String jobType = (String) searchParams.get("jobType");
+        Integer daysOld = (Integer) searchParams.get("daysOld");
+        Boolean remoteOnly = (Boolean) searchParams.get("remoteOnly");
+        
+        List<Job> filteredJobs = new ArrayList<>(jobs);
+        
         // Filter by experience level if specified
-        if (experienceLevel != null && !experienceLevel.isEmpty()) {
+        if (!isBlank(experienceLevel)) {
             filteredJobs = filteredJobs.stream()
                 .filter(job -> job.getExperienceLevel() != null && 
-                              job.getExperienceLevel().equalsIgnoreCase(experienceLevel))
+                            job.getExperienceLevel().equalsIgnoreCase(experienceLevel))
                 .collect(Collectors.toList());
             log.info("After experience level filter: {} jobs", filteredJobs.size());
         }
         
         // Filter by job type if specified
-        if (jobType != null && !jobType.isEmpty()) {
+        if (!isBlank(jobType)) {
             filteredJobs = filteredJobs.stream()
                 .filter(job -> job.getJobType() != null && 
-                               job.getJobType().equalsIgnoreCase(jobType))
+                            job.getJobType().equalsIgnoreCase(jobType))
                 .collect(Collectors.toList());
             log.info("After job type filter: {} jobs", filteredJobs.size());
         }
@@ -148,7 +198,7 @@ public class JobService {
             LocalDate cutoffDate = LocalDate.now().minusDays(daysOld);
             filteredJobs = filteredJobs.stream()
                 .filter(job -> job.getDatePosted() != null && 
-                               !job.getDatePosted().isBefore(cutoffDate))
+                            !job.getDatePosted().isBefore(cutoffDate))
                 .collect(Collectors.toList());
             log.info("After date filter (last {} days): {} jobs", daysOld, filteredJobs.size());
         }
@@ -157,7 +207,7 @@ public class JobService {
         if (remoteOnly != null && remoteOnly) {
             filteredJobs = filteredJobs.stream()
                 .filter(job -> job.getLocation() != null && 
-                               (job.getLocation().toLowerCase().contains("remote") || 
+                            (job.getLocation().toLowerCase().contains("remote") || 
                                 job.getLocation().toLowerCase().contains("anywhere")))
                 .collect(Collectors.toList());
             log.info("After remote filter: {} jobs", filteredJobs.size());
@@ -166,39 +216,12 @@ public class JobService {
         log.info("Final filtered results: {} jobs", filteredJobs.size());
         return filteredJobs;
     }
-    
-    /**
-     * Find jobs posted in the last X days for the current user
-     */
-    public List<Job> getRecentlyPostedJobs(int days) {
-        User currentUser = userService.getCurrentUser();
-        if (currentUser == null) {
-            return Collections.emptyList();
-        }
-        
-        LocalDate cutoffDate = LocalDate.now().minusDays(days);
-        return jobRepository.findByUserAndDatePostedGreaterThanEqual(currentUser, cutoffDate);
-    }
-    
-    /**
-     * Run a LinkedIn scrape with the given configuration for the current user
-     */
-    @Transactional
-    public List<Job> scrapeLinkedInJobs(ScrapingConfig config) {
-        // Check if user is set
-        if (config.getUser() == null) {
-            User currentUser = userService.getCurrentUser();
-            if (currentUser == null) {
-                throw new IllegalStateException("You must be logged in to scrape jobs");
-            }
-            config.setUser(currentUser);
-        }
 
-        log.info("Scraping jobs for user: {} (ID: {})", config.getUser().getUsername(), config.getUser().getId());
-        
-        // Generate a scrapeId just in case one wasn't provided
-        String scrapeId = UUID.randomUUID().toString();
-        return linkedInScraperService.scrapeJobs(config, scrapeId);
+    /**
+     * Helper method to check if a string is null, empty, or blank
+     */
+    private boolean isBlank(String str) {
+        return str == null || str.trim().isEmpty();
     }
     
     /**

@@ -1,6 +1,6 @@
 /**
- * core-functionality.js - Highly optimized consolidated functionality
- * Performance-focused implementation with minimal DOM operations
+ * core-functionality.js - Consolidated functionality with fixed status filtering
+ * Performance-focused implementation with improved status handling
  */
 
 (function() {
@@ -185,18 +185,24 @@
         });
         
         // Handle search button click
-        getElement('searchButton')?.addEventListener('click', searchJobs);
+        getElement('searchButton')?.addEventListener('click', function() {
+            searchJobs(true); // Update counts when search button is explicitly clicked
+        });
         
         // Handle search input with debounce
         const searchKeywords = getElement('searchKeywords');
         const searchLocation = getElement('searchLocation');
         
         if (searchKeywords) {
-            searchKeywords.addEventListener('input', debounce(searchJobs, DEBOUNCE_DELAY));
+            searchKeywords.addEventListener('input', debounce(function() {
+                searchJobs(true); // Update counts when search terms change
+            }, DEBOUNCE_DELAY));
         }
         
         if (searchLocation) {
-            searchLocation.addEventListener('input', debounce(searchJobs, DEBOUNCE_DELAY));
+            searchLocation.addEventListener('input', debounce(function() {
+                searchJobs(true); // Update counts when search terms change
+            }, DEBOUNCE_DELAY));
         }
         
         // Handle scrape button click
@@ -261,7 +267,20 @@
      * Initialize status filters
      */
     function initializeStatusFilters() {
-        // No need to add event listeners - handled by delegation
+        // Select the "All Jobs" filter by default
+        const allJobsFilter = document.querySelector('.status-filter-pill.all-jobs');
+        if (allJobsFilter) {
+            allJobsFilter.classList.add('active');
+        }
+        
+        // Set the hidden input value to "ALL"
+        const statusInput = getElement('searchApplicationStatus');
+        if (statusInput) {
+            statusInput.value = 'ALL';
+        }
+        
+        // Load initial counts when page loads
+        updateStatusCounts(window.trackjobs.currentJobs || []);
     }
     
     /**
@@ -284,8 +303,10 @@
         const status = pill.getAttribute('data-status');
         getElement('searchApplicationStatus').value = status;
         
-        // Trigger search
-        searchJobs();
+        console.log('Status filter selected:', status);
+        
+        // Trigger search but don't update counts - they should remain static
+        searchJobs(false); // Pass false to indicate we shouldn't update counts
     }
     
     /**
@@ -346,6 +367,15 @@
                         window.trackjobs.currentJobs[jobIndex].applicationStatus = newStatus;
                         updateStatusCounts(window.trackjobs.currentJobs);
                     }
+                }
+                
+                // Check if we need to refresh the job list
+                const activeFilter = document.querySelector('.status-filter-pill.active');
+                const activeStatus = activeFilter ? activeFilter.getAttribute('data-status') : 'ALL';
+                
+                // Refresh search if we're not showing all jobs and the status has changed away from the filter
+                if (activeStatus !== 'ALL' && activeStatus !== newStatus) {
+                    searchJobs();
                 }
                 
                 showAlert(`Job status updated to ${STATUS.DISPLAY_NAMES[newStatus]}`, 'success');
@@ -419,6 +449,8 @@
             // Remove ribbon (1 operation)
             existingRibbon.remove();
         }
+        
+        console.log('Updated job card status:', jobId, newStatus);
     }
     
     /**
@@ -426,20 +458,38 @@
      */
     function initializeSearchFunctionality() {
         // Event handlers registered in main registration function
+        
+        // Load initial job counts only on first page load
+        if (!window.trackjobs.countsInitialized) {
+            // Set flag to prevent reloading
+            window.trackjobs.countsInitialized = true;
+            
+            // Initial search will update counts
+            setTimeout(() => {
+                // Get the "All Jobs" count from the server first to set initial counts
+                searchJobs(true); // true = update counts
+            }, 100);
+        }
     }
     
     /**
      * Handle search button click with optimized processing
      */
-    function searchJobs() {
+    function searchJobs(updateCounts = true) {
         console.time('Search');
         
         // Get search parameters once
         const params = getSearchParams();
         
-        // Show loading state
-        const jobsContainer = getElement('jobsContainer');
-        if (jobsContainer) {
+        // Get the jobs container
+        const jobsContainer = document.getElementById('jobsContainer');
+        
+        // Check if this is the first search (container is empty)
+        const isFirstSearch = !jobsContainer || jobsContainer.children.length === 0;
+        
+        // For first-time searches only, show a loading indicator
+        // Otherwise, keep the existing content visible
+        if (isFirstSearch && jobsContainer) {
             jobsContainer.innerHTML = `
                 <div class="col-12 text-center my-5">
                     <div class="spinner-border text-primary" role="status">
@@ -448,12 +498,16 @@
                     <p class="mt-2">Searching jobs...</p>
                 </div>
             `;
+        } else {
+            // For subsequent searches, just add a small indicator to the top of the page
+            addSearchingIndicator();
         }
         
         // Check for required tokens
         if (!csrfToken || !csrfHeader) {
             console.error('CSRF tokens not found');
-            if (jobsContainer) {
+            
+            if (isFirstSearch && jobsContainer) {
                 jobsContainer.innerHTML = `
                     <div class="col-12 text-center">
                         <div class="alert alert-danger">
@@ -462,6 +516,9 @@
                         </div>
                     </div>
                 `;
+            } else {
+                // Show toast for non-first search
+                showAlert('Security tokens not found. Please refresh the page.', 'danger');
             }
             return;
         }
@@ -480,8 +537,10 @@
             // Store in global state (shared memory)
             window.trackjobs.currentJobs = jobs;
             
-            // Update counts
-            updateStatusCounts(jobs);
+            // Update counts only on initial load or when explicitly requested
+            if (updateCounts) {
+                updateStatusCounts(jobs);
+            }
             
             // Sort jobs based on current sort option
             const sortOption = getElement('sortOption')?.value || 'datePosted';
@@ -503,11 +562,18 @@
             // Efficiently display jobs
             displayJobs(sortedJobs);
             
+            // Remove searching indicator if it exists
+            removeSearchingIndicator();
+            
             console.timeEnd('Search');
         })
         .catch(error => {
             console.error('Error searching jobs:', error);
-            if (jobsContainer) {
+            
+            // Remove searching indicator
+            removeSearchingIndicator();
+            
+            if (isFirstSearch && jobsContainer) {
                 jobsContainer.innerHTML = `
                     <div class="col-12 text-center">
                         <div class="alert alert-danger">
@@ -519,8 +585,82 @@
                         </button>
                     </div>
                 `;
+            } else {
+                // Show error toast instead of clearing content
+                showAlert(`Error searching jobs: ${error.message}`, 'danger');
             }
         });
+    }
+    
+    /**
+     * Add a small searching indicator to the top of the page
+     */
+    function addSearchingIndicator() {
+        // Remove any existing indicator first
+        removeSearchingIndicator();
+        
+        // Create indicator
+        const indicator = document.createElement('div');
+        indicator.id = 'searchingIndicator';
+        indicator.className = 'searching-indicator';
+        indicator.innerHTML = `
+            <div class="searching-status">
+                <div class="searching-dot"></div>
+                <span>Searching...</span>
+            </div>
+        `;
+        
+        // Add styles if they don't exist
+        if (!document.getElementById('searching-indicator-styles')) {
+            const styles = document.createElement('style');
+            styles.id = 'searching-indicator-styles';
+            styles.textContent = `
+                .searching-indicator {
+                    position: fixed;
+                    top: 10px;
+                    right: 10px;
+                    background-color: rgba(255, 255, 255, 0.9);
+                    padding: 8px 15px;
+                    border-radius: 4px;
+                    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+                    z-index: 1000;
+                    font-size: 14px;
+                    display: flex;
+                    align-items: center;
+                }
+                .searching-status {
+                    display: flex;
+                    align-items: center;
+                }
+                .searching-dot {
+                    width: 10px;
+                    height: 10px;
+                    border-radius: 50%;
+                    background-color: #007bff;
+                    margin-right: 8px;
+                    animation: pulse 1s infinite;
+                }
+                @keyframes pulse {
+                    0% { opacity: 0.4; }
+                    50% { opacity: 1; }
+                    100% { opacity: 0.4; }
+                }
+            `;
+            document.head.appendChild(styles);
+        }
+        
+        // Add to document
+        document.body.appendChild(indicator);
+    }
+    
+    /**
+     * Remove the searching indicator
+     */
+    function removeSearchingIndicator() {
+        const indicator = document.getElementById('searchingIndicator');
+        if (indicator) {
+            indicator.remove();
+        }
     }
     
     /**
@@ -538,6 +678,9 @@
         const daysOld = parseInt(getElement('searchDatePosted')?.value || '0');
         const remoteOnly = getElement('searchRemoteOnly')?.checked || false;
         const applicationStatus = getElement('searchApplicationStatus')?.value;
+        
+        // Debug output
+        console.log('Search params - applicationStatus:', applicationStatus);
         
         // Only add non-empty parameters for smaller request
         if (keywords) params.append('keywords', keywords);
@@ -579,6 +722,9 @@
             
             // Display sorted jobs
             displayJobs(sortedJobs);
+        } else {
+            // If no jobs in memory, trigger a new search
+            searchJobs();
         }
     }
     
@@ -638,47 +784,22 @@
                 };
                 
                 return sortedJobs.sort((a, b) => {
-                    const statusA = statusOrder[a.applicationStatus || 'SAVED'] || 99;
-                    const statusB = statusOrder[b.applicationStatus || 'SAVED'] || 99;
+                    // Ensure we have a valid status or default to SAVED
+                    const statusA = statusOrder[a.applicationStatus || 'SAVED'] || 4; // Default to SAVED (4)
+                    const statusB = statusOrder[b.applicationStatus || 'SAVED'] || 4;
                     return statusA - statusB;
                 });
                 
             case 'company':
                 return sortedJobs.sort((a, b) => 
                     (a.company || '').localeCompare(b.company || ''));
-                
+                    
             case 'title':
                 return sortedJobs.sort((a, b) => 
                     (a.title || '').localeCompare(b.title || ''));
-                
+                    
             default:
                 return sortedJobs;
-        }
-    }
-    
-    /**
-     * Handle view details button click
-     * @param {Event} event - Click event
-     */
-    function handleViewDetails(event) {
-        event.preventDefault();
-        
-        const btn = event.target.closest('.view-job-details-btn');
-        const jobId = btn.getAttribute('data-job-id');
-        
-        if (jobId) {
-            openJobDetailsModal(jobId);
-        }
-    }
-    
-    /**
-     * Handle job card click
-     * @param {HTMLElement} jobCard - The clicked job card
-     */
-    function handleJobCardClick(jobCard) {
-        const jobId = jobCard.getAttribute('data-job-id');
-        if (jobId) {
-            openJobDetailsModal(jobId);
         }
     }
     
@@ -687,26 +808,57 @@
      * @param {String|Number} jobId - ID of the job
      */
     function openJobDetailsModal(jobId) {
-        console.time('JobDetailsModal');
+        // Don't use console.time here - it's causing the "Timer already exists" error
         
         // Cache modal elements
-        const modal = getElement('jobDetailsModal');
-        const spinner = getElement('jobDetailsSpinner');
-        const content = getElement('jobDetailsContent');
-        const errorMsg = getElement('jobDetailsError');
+        const modal = document.getElementById('jobDetailsModal');
+        const spinner = document.getElementById('jobDetailsSpinner');
+        const content = document.getElementById('jobDetailsContent');
+        const errorMsg = document.getElementById('jobDetailsError');
+        
+        if (!modal) {
+            console.error('Job details modal not found');
+            return;
+        }
         
         // Show modal immediately for better UX
-        if (typeof bootstrap !== 'undefined') {
-            // Use bootstrap if available
-            try {
-                const modalInstance = new bootstrap.Modal(modal);
+        try {
+            // Check if Bootstrap is properly loaded
+            if (typeof bootstrap !== 'undefined' && bootstrap.Modal) {
+                // First check if there's an existing modal instance
+                let modalInstance = bootstrap.Modal.getInstance(modal);
+                
+                // If no instance exists, create a new one
+                if (!modalInstance) {
+                    modalInstance = new bootstrap.Modal(modal, {
+                        backdrop: true,
+                        keyboard: true,
+                        focus: true
+                    });
+                }
+                
                 modalInstance.show();
-            } catch (e) {
-                console.error('Error showing modal with Bootstrap', e);
-                manuallyShowModal(modal);
+            } else {
+                console.warn('Bootstrap not available, using fallback modal display');
+                // Fallback to manual showing if Bootstrap is not available
+                modal.style.display = 'block';
+                modal.classList.add('show');
+                document.body.classList.add('modal-open');
+                
+                // Add backdrop if it doesn't exist
+                let backdrop = document.querySelector('.modal-backdrop');
+                if (!backdrop) {
+                    backdrop = document.createElement('div');
+                    backdrop.className = 'modal-backdrop fade show';
+                    document.body.appendChild(backdrop);
+                }
             }
-        } else {
-            manuallyShowModal(modal);
+        } catch (e) {
+            console.error('Error showing modal:', e);
+            // Fallback to simple display
+            if (modal) {
+                modal.style.display = 'block';
+            }
         }
         
         // Prepare modal for loading
@@ -715,21 +867,22 @@
         if (errorMsg) errorMsg.style.display = 'none';
         
         // Check for cached job data in memory
-        if (window.trackjobs.currentJobs) {
+        if (window.trackjobs && window.trackjobs.currentJobs) {
             const cachedJob = window.trackjobs.currentJobs.find(job => job.id == jobId);
             if (cachedJob && cachedJob.description) {
                 // Use cached data
                 console.log('Using cached job data');
                 displayJobDetails(cachedJob);
-                console.timeEnd('JobDetailsModal');
                 return;
             }
         }
         
         // Not in cache, load from API
+        const csrfToken = document.querySelector('meta[name="_csrf"]')?.getAttribute('content');
+        const csrfHeader = document.querySelector('meta[name="_csrf_header"]')?.getAttribute('content');
+        
         if (!csrfToken || !csrfHeader) {
             showModalError('Security tokens not found. Please refresh the page.');
-            console.timeEnd('JobDetailsModal');
             return;
         }
         
@@ -745,7 +898,7 @@
         })
         .then(job => {
             // Cache job data for future use
-            if (window.trackjobs.currentJobs) {
+            if (window.trackjobs && window.trackjobs.currentJobs) {
                 const jobIndex = window.trackjobs.currentJobs.findIndex(j => j.id == jobId);
                 if (jobIndex !== -1) {
                     window.trackjobs.currentJobs[jobIndex] = job;
@@ -753,13 +906,59 @@
             }
             
             displayJobDetails(job);
-            console.timeEnd('JobDetailsModal');
         })
         .catch(error => {
             console.error('Error fetching job details:', error);
             showModalError(`Error loading job details: ${error.message}`);
-            console.timeEnd('JobDetailsModal');
         });
+    }
+    
+    /**
+     * Show error message in modal
+     * @param {String} message - Error message
+     */
+    function showModalError(message) {
+        const spinner = document.getElementById('jobDetailsSpinner');
+        const content = document.getElementById('jobDetailsContent');
+        const errorMsg = document.getElementById('jobDetailsError');
+        
+        if (spinner) spinner.style.display = 'none';
+        if (content) content.style.display = 'none';
+        
+        if (errorMsg) {
+            errorMsg.textContent = message;
+            errorMsg.style.display = 'block';
+        }
+    }
+    
+    /**
+     * Handle view details button click
+     * @param {Event} event - Click event
+     */
+    function handleViewDetails(event) {
+        event.preventDefault();
+        
+        const btn = event.target.closest('.view-job-details-btn');
+        if (!btn) return;
+        
+        const jobId = btn.getAttribute('data-job-id');
+        
+        if (jobId) {
+            openJobDetailsModal(jobId);
+        }
+    }
+    
+    /**
+     * Handle job card click
+     * @param {HTMLElement} jobCard - The clicked job card
+     */
+    function handleJobCardClick(jobCard) {
+        if (!jobCard) return;
+        
+        const jobId = jobCard.getAttribute('data-job-id');
+        if (jobId) {
+            openJobDetailsModal(jobId);
+        }
     }
     
     /**
@@ -919,6 +1118,15 @@
                         window.trackjobs.currentJobs[jobIndex].applicationStatus = newStatus;
                         updateStatusCounts(window.trackjobs.currentJobs);
                     }
+                }
+                
+                // Check if we need to refresh job list due to filtering
+                const activeFilter = document.querySelector('.status-filter-pill.active');
+                const activeStatus = activeFilter ? activeFilter.getAttribute('data-status') : 'ALL';
+                
+                if (activeStatus !== 'ALL' && activeStatus !== newStatus) {
+                    // Job status changed and we're filtering - need to refresh
+                    setTimeout(() => searchJobs(), 500);
                 }
                 
                 showAlert(`Job status updated to ${STATUS.DISPLAY_NAMES[newStatus]}`, 'success');
@@ -1296,63 +1504,95 @@
      * Display jobs with efficient DOM operations
      * @param {Array} jobs - Array of job objects
      */
-    function displayJobs(jobs) {
-        console.time('DisplayJobs');
+    function displayJobDetails(job) {
+        if (!job) return;
         
+        // Update text content - batch DOM operations
+        batchDomUpdates([
+            { id: 'jobDetailTitle', textContent: job.title || 'Untitled Job' },
+            { id: 'jobDetailCompany', textContent: job.company || 'Unknown Company' },
+            { id: 'jobDetailLocation', textContent: job.location || 'Not specified' },
+            { id: 'jobDetailJobType', textContent: job.jobType || 'Not specified' },
+            { id: 'jobDetailExperienceLevel', textContent: job.experienceLevel || 'Not specified' },
+            { id: 'jobDetailPosted', textContent: formatDate(job.datePosted) },
+            { id: 'jobDetailScraped', textContent: formatDate(job.dateScraped) }
+        ]);
+        
+        // Set status selection
+        const status = job.applicationStatus || 'SAVED';
+        const radios = document.querySelectorAll('.job-status-selector input[name="jobStatus"]');
+        
+        // Remove existing listeners and set state
+        radios.forEach(radio => {
+            const newRadio = radio.cloneNode(true);
+            newRadio.checked = newRadio.value === status;
+            
+            // Add listener to new radio
+            newRadio.addEventListener('change', function() {
+                if (this.checked) {
+                    updateJobStatusFromModal(job.id, this.value);
+                }
+            });
+            
+            radio.parentNode.replaceChild(newRadio, radio);
+        });
+        
+        // Format description
+        const descElement = getElement('jobDetailDescription');
+        if (descElement) {
+            descElement.innerHTML = job.description && job.description.trim() 
+                ? formatJobDescription(job.description)
+                : '<p class="text-muted">No detailed description available for this job.</p>';
+        }
+        
+        // Set LinkedIn link
+        const linkedInLink = getElement('jobDetailLinkedInLink');
+        if (linkedInLink) {
+            if (job.url) {
+                linkedInLink.href = job.url;
+                linkedInLink.style.display = 'inline-block';
+            } else {
+                linkedInLink.style.display = 'none';
+            }
+        }
+        
+        // Set Claude AI document generation buttons job ID
+        const generateTailoredResumeBtn = getElement('generateTailoredResumeBtn');
+        const generateCoverLetterBtn = getElement('generateCoverLetterBtn');
+        
+        if (generateTailoredResumeBtn) {
+            generateTailoredResumeBtn.dataset.jobId = job.id;
+        }
+        
+        if (generateCoverLetterBtn) {
+            generateCoverLetterBtn.dataset.jobId = job.id;
+        }
+        
+        // Show content, hide spinner
+        getElement('jobDetailsSpinner').style.display = 'none';
+        getElement('jobDetailsContent').style.display = 'block';
+    }
+    
+    /**
+     * Show no jobs message based on active filter
+     */
+    function showNoJobsMessage() {
         const jobsContainer = getElement('jobsContainer');
-        if (!jobsContainer) {
-            console.error('Jobs container not found');
-            return;
-        }
+        if (!jobsContainer) return;
         
-        // Clear container
-        jobsContainer.innerHTML = '';
+        // Get the currently selected status filter
+        const activeFilter = document.querySelector('.status-filter-pill.active');
+        const status = activeFilter ? activeFilter.getAttribute('data-status') : 'ALL';
+        const statusName = status === 'ALL' ? 'jobs' : STATUS.DISPLAY_NAMES[status].toLowerCase() + ' jobs';
         
-        // Show no jobs message if empty
-        if (!jobs || jobs.length === 0) {
-            jobsContainer.innerHTML = `
-                <div class="col-12 text-center">
-                    <div class="alert alert-info">
-                        <i class="bi bi-info-circle-fill me-2"></i>
-                        No jobs found. Try different search criteria or use the scraper to get new jobs.
-                    </div>
+        jobsContainer.innerHTML = `
+            <div class="col-12 text-center">
+                <div class="alert alert-info">
+                    <i class="bi bi-info-circle-fill me-2"></i>
+                    No ${statusName} found. ${status === 'ALL' ? 'Try different search criteria or use the scraper to get new jobs.' : ''}
                 </div>
-            `;
-            console.timeEnd('DisplayJobs');
-            return;
-        }
-        
-        // Use DocumentFragment for batch insertion
-        const fragment = document.createDocumentFragment();
-        
-        // Process jobs in batches for better UI responsiveness
-        const totalJobs = jobs.length;
-        const batchSize = Math.min(MAX_BATCH_SIZE, Math.ceil(totalJobs / 4));
-        
-        let currentIndex = 0;
-        
-        function processNextBatch() {
-            if (currentIndex >= totalJobs) {
-                // All batches processed
-                jobsContainer.appendChild(fragment);
-                console.timeEnd('DisplayJobs');
-                return;
-            }
-            
-            const endIndex = Math.min(currentIndex + batchSize, totalJobs);
-            
-            for (let i = currentIndex; i < endIndex; i++) {
-                fragment.appendChild(createJobCardElement(jobs[i]));
-            }
-            
-            currentIndex = endIndex;
-            
-            // Process next batch on next frame
-            requestAnimationFrame(processNextBatch);
-        }
-        
-        // Start processing
-        processNextBatch();
+            </div>
+        `;
     }
     
     /**
@@ -1361,8 +1601,13 @@
      * @return {HTMLElement} Job card element
      */
     function createJobCardElement(job) {
-        // Set defaults to avoid null checks
-        const status = job.applicationStatus || 'SAVED';
+        // Ensure applicationStatus is never null/undefined/empty string
+        // and always defaults to SAVED when any of those conditions are true
+        let status = 'SAVED';
+        if (job.applicationStatus && job.applicationStatus.trim() !== '') {
+            status = job.applicationStatus;
+        }
+        
         const statusClass = `status-${status}`;
         const statusDisplay = STATUS.DISPLAY_NAMES[status];
         const statusIcon = STATUS.ICONS[status];
@@ -1402,7 +1647,7 @@
                     </div>
                     
                     <p class="card-text">
-                        <i class="bi bi-geo-alt-fill"></i> ${escapeHtml(job.location)}<br>
+                        <i class="bi bi-geo-alt-fill"></i> ${escapeHtml(job.location || 'Not specified')}<br>
                         <i class="bi bi-calendar"></i> ${formatDate(job.datePosted)}<br>
                         <i class="bi bi-briefcase-fill"></i> ${escapeHtml(job.experienceLevel || 'Not specified')}
                     </p>
@@ -1457,6 +1702,8 @@
         updateCountElement('countInterviewing', counts.INTERVIEWING);
         updateCountElement('countRejected', counts.REJECTED);
         updateCountElement('countOffer', counts.OFFER);
+        
+        console.log('Updated status counts:', counts);
     }
     
     /**
@@ -1978,5 +2225,235 @@
             clearTimeout(timeout);
             timeout = setTimeout(() => func.apply(context, args), wait);
         };
+    }
+
+    /**
+     * Display jobs with efficient DOM operations
+     * @param {Array} jobs - Array of job objects
+     */
+    function displayJobs(jobs) {
+        console.time('DisplayJobs');
+        
+        const jobsContainer = document.getElementById('jobsContainer');
+        if (!jobsContainer) {
+            console.error('Jobs container not found');
+            return;
+        }
+        
+        // Show no jobs message if empty
+        if (!jobs || jobs.length === 0) {
+            showNoJobsMessage();
+            console.timeEnd('DisplayJobs');
+            return;
+        }
+        
+        // Record current container state
+        const currentScrollPos = window.scrollY;
+        const currentHeight = jobsContainer.offsetHeight;
+        
+        // Create a temporary container that will hold our new content
+        const tempContainer = document.createElement('div');
+        tempContainer.className = 'row temp-jobs-container';
+        tempContainer.style.opacity = '0';
+        tempContainer.style.position = 'absolute';
+        tempContainer.style.left = '-9999px'; // Hide it off-screen initially
+        tempContainer.style.width = jobsContainer.clientWidth + 'px'; // Match width for accurate height calculation
+        
+        // Use DocumentFragment for batch insertion to the temp container
+        const fragment = document.createDocumentFragment();
+        
+        // Add all job cards
+        for (let i = 0; i < jobs.length; i++) {
+            fragment.appendChild(createJobCardElement(jobs[i]));
+        }
+        
+        // Append all job cards to the temporary container
+        tempContainer.appendChild(fragment);
+        
+        // Add the temp container to the DOM (still invisible)
+        document.body.appendChild(tempContainer);
+        
+        // Get the height of the new content
+        const newHeight = tempContainer.offsetHeight;
+        
+        // Add the necessary transition styles if they don't exist
+        if (!document.getElementById('jobs-transition-styles')) {
+            const styles = document.createElement('style');
+            styles.id = 'jobs-transition-styles';
+            styles.textContent = `
+                .jobs-fade-out {
+                    opacity: 0.6;
+                    transition: opacity 150ms ease-out;
+                }
+                .jobs-fade-in {
+                    opacity: 0;
+                    animation: fadeJobsIn 300ms forwards;
+                }
+                .jobs-height-transition {
+                    transition: height 400ms ease-out;
+                    overflow: hidden;
+                }
+                @keyframes fadeJobsIn {
+                    0% { opacity: 0; }
+                    100% { opacity: 1; }
+                }
+            `;
+            document.head.appendChild(styles);
+        }
+        
+        // Now perform the transition
+        requestAnimationFrame(() => {
+            // Step 1: Set explicit height and add transition class
+            jobsContainer.style.height = currentHeight + 'px';
+            jobsContainer.classList.add('jobs-height-transition');
+            
+            // Step 2: Add fade-out class to current content
+            jobsContainer.classList.add('jobs-fade-out');
+            
+            // Step 3: After fade out, change content and animate height
+            setTimeout(() => {
+                // Clear current container
+                jobsContainer.innerHTML = '';
+                
+                // Get all the job cards from the temp container
+                const jobCards = tempContainer.querySelectorAll('.col-md-4');
+                jobCards.forEach(card => {
+                    jobsContainer.appendChild(card);
+                });
+                
+                // Adjust to new height
+                jobsContainer.style.height = newHeight + 'px';
+                
+                // Remove the temporary container
+                tempContainer.remove();
+                
+                // Restore scroll position
+                window.scrollTo(0, currentScrollPos);
+                
+                // Remove fade-out and add fade-in
+                jobsContainer.classList.remove('jobs-fade-out');
+                jobsContainer.classList.add('jobs-fade-in');
+                
+                // Step 4: After height transition completes, clean up
+                setTimeout(() => {
+                    jobsContainer.classList.remove('jobs-height-transition');
+                    jobsContainer.classList.remove('jobs-fade-in');
+                    jobsContainer.style.height = '';
+                }, 400); // Match the height transition duration
+            }, 150); // Match the fade-out duration
+        });
+        
+        console.timeEnd('DisplayJobs');
+    }
+
+    /**
+     * Show no jobs message based on active filter
+     */
+    function showNoJobsMessage() {
+        const jobsContainer = document.getElementById('jobsContainer');
+        if (!jobsContainer) return;
+        
+        // Get the currently selected status filter
+        const activeFilter = document.querySelector('.status-filter-pill.active');
+        const status = activeFilter ? activeFilter.getAttribute('data-status') : 'ALL';
+        const statusName = status === 'ALL' ? 'jobs' : STATUS.DISPLAY_NAMES[status].toLowerCase() + ' jobs';
+        
+        jobsContainer.innerHTML = `
+            <div class="col-12 text-center">
+                <div class="alert alert-info">
+                    <i class="bi bi-info-circle-fill me-2"></i>
+                    No ${statusName} found. ${status === 'ALL' ? 'Try different search criteria or use the scraper to get new jobs.' : ''}
+                </div>
+            </div>
+        `;
+    }
+
+    /**
+     * Create job card element with optimized DOM operations
+     * @param {Object} job - Job data
+     * @return {HTMLElement} Job card element
+     */
+    function createJobCardElement(job) {
+        // Set defaults to avoid null checks
+        const status = job.applicationStatus || 'SAVED';
+        const statusClass = `status-${status}`;
+        const statusDisplay = STATUS.DISPLAY_NAMES[status];
+        const statusIcon = STATUS.ICONS[status];
+        
+        // Generate status options once
+        const statusOptionsHtml = Object.entries(STATUS.DISPLAY_NAMES)
+            .map(([value, label]) => 
+                `<option value="${value}" ${status === value ? 'selected' : ''}>
+                    ${label}
+                </option>`
+            ).join('');
+        
+        // Create card container
+        const cardDiv = document.createElement('div');
+        cardDiv.className = 'col-md-4 mb-4';
+        
+        // Use template string for efficient HTML construction
+        cardDiv.innerHTML = `
+            <div class="card h-100 job-card ${statusClass}" data-job-id="${job.id}">
+                ${status !== 'SAVED' ? `<div class="status-ribbon ${statusClass}">${statusDisplay}</div>` : ''}
+                <div class="card-body">
+                    <div class="d-flex justify-content-between align-items-start mb-2">
+                        <h5 class="card-title">${escapeHtml(job.title)}</h5>
+                    </div>
+                    <h6 class="card-subtitle mb-2">${escapeHtml(job.company)}</h6>
+                    
+                    <div class="d-flex justify-content-between align-items-center mb-3">
+                        <span class="status-badge ${statusClass}" data-job-id="${job.id}">
+                            ${statusIcon} ${statusDisplay}
+                        </span>
+                        
+                        <div class="status-selector-container">
+                            <select class="form-select form-select-sm job-status-select" data-job-id="${job.id}" aria-label="Update job status">
+                                ${statusOptionsHtml}
+                            </select>
+                        </div>
+                    </div>
+                    
+                    <p class="card-text">
+                        <i class="bi bi-geo-alt-fill"></i> ${escapeHtml(job.location || 'Not specified')}<br>
+                        <i class="bi bi-calendar"></i> ${formatDate(job.datePosted)}<br>
+                        <i class="bi bi-briefcase-fill"></i> ${escapeHtml(job.experienceLevel || 'Not specified')}
+                    </p>
+                </div>
+                <div class="card-footer bg-transparent d-flex justify-content-between">
+                    <button class="btn btn-sm btn-primary view-job-details-btn" data-job-id="${job.id}">
+                        <i class="bi bi-eye me-1"></i>View Details
+                    </button>
+                    ${job.url ? `
+                        <a href="${escapeHtml(job.url)}" target="_blank" class="btn btn-sm btn-outline-primary" onclick="event.stopPropagation();">
+                            <i class="bi bi-linkedin me-1"></i>LinkedIn
+                        </a>
+                    ` : `
+                        <button class="btn btn-sm btn-outline-secondary" disabled onclick="event.stopPropagation();">
+                            No URL Available
+                        </button>
+                    `}
+                </div>
+            </div>
+        `;
+        
+        return cardDiv;
+    }
+
+    /**
+     * Escape HTML efficiently
+     * @param {String} str - String to escape
+     * @return {String} Escaped HTML string
+     */
+    function escapeHtml(str) {
+        if (!str) return '';
+        
+        // Use template strings for faster processing
+        return String(str)
+            .replace(/&/g, '&amp;')
+            .replace(/</g, '&lt;')
+            .replace(/>/g, '&gt;')
+            .replace(/"/g, '&quot;')
+            .replace(/'/g, '&#039;');
     }
 })();

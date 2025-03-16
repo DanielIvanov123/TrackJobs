@@ -18,6 +18,9 @@ import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.http.HttpStatus;
+import org.springframework.core.env.Environment;
+import org.springframework.core.env.Profiles;
+import org.springframework.web.bind.annotation.ExceptionHandler;
 
 import java.time.Duration;
 import java.time.LocalDate;
@@ -53,6 +56,9 @@ public class JobController {
 
     @Autowired
     private JobRepository jobRepository;
+
+    @Autowired
+    private Environment environment;
     
     /**
      * Main page - display job listings
@@ -85,10 +91,12 @@ public class JobController {
             @RequestParam(required = false) String experienceLevel,
             @RequestParam(required = false) String jobType,
             @RequestParam(required = false, defaultValue = "0") Integer daysOld,
-            @RequestParam(required = false, defaultValue = "false") Boolean remoteOnly) {
+            @RequestParam(required = false, defaultValue = "false") Boolean remoteOnly,
+            @RequestParam(required = false) String applicationStatus) {
         
-        log.info("Search request - Keywords: '{}', Location: '{}', Experience Level: '{}', Job Type: '{}', Days Old: {}, Remote Only: {}", 
-                keywords, location, experienceLevel, jobType, daysOld, remoteOnly);
+        log.info("Search request - Keywords: '{}', Location: '{}', Experience Level: '{}', Job Type: '{}', " + 
+                "Days Old: {}, Remote Only: {}, Application Status: '{}'", 
+            keywords, location, experienceLevel, jobType, daysOld, remoteOnly, applicationStatus);
         
         // Create search parameters map
         Map<String, Object> searchParams = new HashMap<>();
@@ -98,6 +106,7 @@ public class JobController {
         searchParams.put("jobType", jobType);
         searchParams.put("daysOld", daysOld);
         searchParams.put("remoteOnly", remoteOnly);
+        searchParams.put("applicationStatus", applicationStatus);
         
         return jobService.searchJobsAdvanced(searchParams);
     }
@@ -512,4 +521,27 @@ public class JobController {
             return Collections.emptyList();
         }
     }
+
+    /**
+     * Enhanced error handling for JobController
+     * Add this method to your JobController.java file
+     */
+    @ExceptionHandler
+    public ResponseEntity<Map<String, Object>> handleException(Exception e) {
+        log.error("Error in JobController: {}", e.getMessage(), e);
+        
+        Map<String, Object> response = new HashMap<>();
+        response.put("success", false);
+        response.put("message", "Server error: " + e.getMessage());
+        
+        // Add stack trace for development environments
+        if (!environment.acceptsProfiles(Profiles.of("production"))) {
+            response.put("stackTrace", Arrays.stream(e.getStackTrace())
+                .limit(10)
+                .map(StackTraceElement::toString)
+                .collect(Collectors.toList()));
+        }
+        
+        return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(response);
+    }    
 }

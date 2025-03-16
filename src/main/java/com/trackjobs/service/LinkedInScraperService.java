@@ -5,7 +5,6 @@ import com.trackjobs.model.ScrapingConfig;
 import com.trackjobs.model.ScrapingProgress;
 import com.trackjobs.repository.JobRepository;
 import lombok.extern.slf4j.Slf4j;
-import com.trackjobs.service.ProgressService;
 
 import com.trackjobs.model.User;
 
@@ -33,9 +32,6 @@ public class LinkedInScraperService {
 
     @Autowired
     private JobRepository jobRepository;
-    
-    @Autowired
-    private ProgressService progressService;  // Inject the progress service
     
     @Value("${linkedin.scraper.user-agent}")
     private String userAgent;
@@ -572,20 +568,6 @@ public class LinkedInScraperService {
     }
     
     /**
-     * Map LinkedIn code to experience level string
-     */
-    private String mapLinkedInCodeToExperienceLevel(String code) {
-        switch (code) {
-            case "1": return "Internship";
-            case "2": return "Associate";
-            case "4": return "Mid-Senior level";
-            case "5": return "Director";
-            case "6": return "Executive";
-            default: return "Not specified";
-        }
-    }
-    
-    /**
      * Map job type to LinkedIn's code
      */
     private String mapJobTypeToLinkedInCode(String jobType) {
@@ -719,6 +701,7 @@ public class LinkedInScraperService {
                          title, company, location, experienceLevel);
                 
                 // Create and add the job - use the experience level from the search
+                // IMPORTANT: Explicitly set applicationStatus to SAVED to ensure it's never null
                 Job job = Job.builder()
                     .title(title)
                     .company(company)
@@ -728,6 +711,7 @@ public class LinkedInScraperService {
                     .dateScraped(scrapeDate)
                     .experienceLevel(experienceLevel)  // Use the experience level from the search
                     .jobType(jobType)
+                    .applicationStatus(Job.ApplicationStatus.SAVED) // Explicitly set status to SAVED
                     .build();
                 
                 jobs.add(job);

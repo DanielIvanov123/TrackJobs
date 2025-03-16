@@ -1,6 +1,7 @@
 package com.trackjobs.model;
 
 import com.fasterxml.jackson.annotation.JsonIgnore;
+import com.fasterxml.jackson.annotation.JsonFormat;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
@@ -41,9 +42,11 @@ public class Job {
     private String url;
     
     @Column(name = "date_posted")
+    @JsonFormat(shape = JsonFormat.Shape.STRING, pattern = "yyyy-MM-dd")
     private LocalDate datePosted;
     
     @Column(name = "date_scraped")
+    @JsonFormat(shape = JsonFormat.Shape.STRING, pattern = "yyyy-MM-dd")
     private LocalDate dateScraped;
     
     @Column(name = "experience_level")
@@ -62,6 +65,11 @@ public class Job {
     public void prePersist() {
         if (dateScraped == null) {
             dateScraped = LocalDate.now();
+        }
+        
+        // Ensure applicationStatus is never null when persisting
+        if (applicationStatus == null) {
+            applicationStatus = ApplicationStatus.SAVED;
         }
     }
 
