@@ -40,12 +40,14 @@
     // Initialize application when DOM is ready
     document.addEventListener('DOMContentLoaded', function() {
         console.time('Initialization');
-        
+    
         // Initialize global state with empty objects to avoid null checks
         window.trackjobs = window.trackjobs || {
             currentJobs: [],
             initialized: false,
-            elements: {}
+            elements: {},
+            activeTab: 'search', // Track the current active tab
+            newJobsAvailable: false // Flag for newly scraped jobs
         };
         
         // Cache CSRF tokens immediately
@@ -66,6 +68,18 @@
         if (getElement('scraperTabContent').style.display !== 'none') {
             loadSavedConfigs();
         }
+        
+        // Set up visibility change listener to refresh job listings when returning to the page
+        document.addEventListener('visibilitychange', function() {
+            if (document.visibilityState === 'visible') {
+                // Check if we're on the search tab and new jobs are available
+                if (window.trackjobs.activeTab === 'search' && window.trackjobs.newJobsAvailable) {
+                    console.log('Page became visible, refreshing job listings');
+                    window.trackjobs.newJobsAvailable = false;
+                    setTimeout(() => searchJobs(true), 100);
+                }
+            }
+        });
         
         // Trigger initial search if on search tab
         if (getElement('searchTabContent').style.display !== 'none') {
@@ -228,7 +242,7 @@
     }
     
     /**
-     * Switch between tabs
+     * Switch between tabs with automatic job listing updates
      * @param {String} tab - Tab name (search or scraper)
      */
     function switchToTab(tab) {
@@ -238,6 +252,9 @@
         const searchTabContent = getElement('searchTabContent');
         const scraperTabContent = getElement('scraperTabContent');
         
+        // Track if we're switching to search from another tab
+        const wasSearchHidden = searchTabContent.style.display === 'none';
+        
         if (tab === 'search') {
             // Update classes in batch
             searchTabLink.classList.add('active');
@@ -246,6 +263,15 @@
             // Use direct style changes for better performance
             searchTabContent.style.display = 'block';
             scraperTabContent.style.display = 'none';
+            
+            // Refresh job listings if we're coming from another tab
+            if (wasSearchHidden) {
+                console.log('Refreshing job listings after tab switch');
+                // Use setTimeout to ensure the UI updates first
+                setTimeout(() => {
+                    searchJobs(true); // true = update counts
+                }, 50);
+            }
         } else {
             // Update classes in batch
             searchTabLink.classList.remove('active');
@@ -261,8 +287,11 @@
                 DOM.configsLoaded = true;
             }
         }
+        
+        // Store the current active tab for future reference
+        window.trackjobs.activeTab = tab;
     }
-    
+        
     /**
      * Initialize status filters
      */
@@ -1306,6 +1335,11 @@
                 clearInterval(pollInterval);
                 addStatusUpdate('Scraping completed successfully!');
                 showAlert('Scraping completed successfully!', 'success');
+                
+                // Flag to indicate new jobs are available
+                window.trackjobs.newJobsAvailable = true;
+                
+                // Update the search tab's job listings automatically
                 fetchRecentlyScrapedJobs();
                 resetScraperUI();
             } else if (progress.percentComplete < 0) {
@@ -1420,8 +1454,21 @@
             return response.json();
         })
         .then(jobs => {
+            // Display the recent jobs in the scraper tab
             displayRecentScrapedJobs(jobs);
             addStatusUpdate(`Found ${jobs.length} recently scraped jobs.`);
+            
+            // Update the search tab's job list if it's currently visible
+            if (window.trackjobs.activeTab === 'search') {
+                console.log('Automatically updating search tab with new jobs');
+                // Update the global job cache
+                window.trackjobs.currentJobs = jobs;
+                // Refresh the job listings
+                setTimeout(() => searchJobs(true), 100);
+            } else {
+                // Mark that new jobs are available when switching back to search
+                window.trackjobs.newJobsAvailable = true;
+            }
         })
         .catch(error => {
             console.error('Error fetching recent jobs:', error);
@@ -1483,7 +1530,7 @@
         // Switch to search tab
         switchToTab('search');
         
-        // Update search form
+        // Update search form with the keywords and location from the scraper tab
         const searchKeywords = getElement('searchKeywords');
         const keywords = getElement('keywords');
         if (searchKeywords && keywords) {
@@ -1496,8 +1543,8 @@
             searchLocation.value = location.value;
         }
         
-        // Trigger search
-        searchJobs();
+        // Trigger search immediately to show the new jobs
+        searchJobs(true); // true = update counts
     }
     
     /**
