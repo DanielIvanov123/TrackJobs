@@ -697,8 +697,17 @@ public class LinkedInScraperService {
                 String company = companyElement.text().trim();
                 String location = locationElement != null ? locationElement.text().trim() : "";
                 
-                // Get URL if available
-                String url = linkElement != null ? linkElement.attr("href") : "";
+                // Get URL if available and ensure it's not too long
+                String url = "";
+                if (linkElement != null) {
+                    url = linkElement.attr("href");
+                    
+                    // Check URL length to avoid database column overflow (set to max 1000 chars)
+                    if (url.length() > 1000) {
+                        log.warn("URL too long ({} chars), truncating: {}", url.length(), url);
+                        url = url.substring(0, 997) + "...";
+                    }
+                }
                 
                 // Parse date posted (fallback to today if not available)
                 LocalDate datePosted = scrapeDate;

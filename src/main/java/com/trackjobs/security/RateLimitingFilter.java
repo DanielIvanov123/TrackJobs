@@ -20,10 +20,10 @@ import java.util.concurrent.TimeUnit;
 public class RateLimitingFilter implements Filter {
 
     // Maximum number of requests allowed in the time window
-    private static final int MAX_REQUESTS_PER_MINUTE = 60;
+    private static final int MAX_REQUESTS_PER_MINUTE = 120; // Increased from 60
     
     // Higher limit for scrape progress endpoint
-    private static final int MAX_PROGRESS_REQUESTS_PER_MINUTE = 1000;
+    private static final int MAX_PROGRESS_REQUESTS_PER_MINUTE = 2000; // Increased from 1000
     
     // Cache to store request counts per IP
     private LoadingCache<String, Integer> requestCounts;
@@ -62,6 +62,16 @@ public class RateLimitingFilter implements Filter {
         
         // Get request path to check if it's a progress endpoint
         String requestPath = httpRequest.getRequestURI();
+        
+        // Skip rate limiting for static resources
+        if (requestPath.startsWith("/css/") || 
+            requestPath.startsWith("/js/") || 
+            requestPath.startsWith("/images/") ||
+            requestPath.startsWith("/webjars/")) {
+            chain.doFilter(request, response);
+            return;
+        }
+        
         boolean isProgressEndpoint = requestPath.contains("/api/jobs/scrape/progress");
         
         // Choose the appropriate cache and limit

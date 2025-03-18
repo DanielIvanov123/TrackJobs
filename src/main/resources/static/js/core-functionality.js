@@ -1281,6 +1281,16 @@
             return;
         }
         
+        // Calculate estimated completion time based on pages and experience levels
+        const totalPages = pagesToScrape;
+        const totalExpLevels = experienceLevelInclude.length || 1;
+        const estimatedTimePerPage = 20; // seconds
+        const estimatedTimeInSeconds = totalPages * totalExpLevels * estimatedTimePerPage;
+        
+        // Log estimated time
+        const estimatedMinutes = Math.ceil(estimatedTimeInSeconds / 60);
+        addStatusUpdate(`Estimated completion time: ~${estimatedMinutes} minutes (${totalPages} pages × ${totalExpLevels} experience levels)`);
+        
         // Start scrape
         fetch('/api/jobs/scrape', {
             method: 'POST',
@@ -1306,16 +1316,29 @@
                     pollScrapeProgress(scrapeId, pollInterval);
                 }, 1000);
                 
-                // Set a safety timeout (5 minutes)
+                // Calculate a more appropriate timeout based on the estimated completion time
+                // Minimum 15 minutes, maximum 60 minutes
+                const minTimeout = 15 * 60 * 1000; // 15 minutes
+                const maxTimeout = 60 * 60 * 1000; // 60 minutes
+                
+                // Calculate dynamic timeout: 3x the estimated time (with min and max bounds)
+                const dynamicTimeout = Math.min(
+                    maxTimeout, 
+                    Math.max(minTimeout, estimatedTimeInSeconds * 3 * 1000)
+                );
+                
+                addStatusUpdate(`Monitoring will continue for up to ${Math.round(dynamicTimeout/60000)} minutes`);
+                
+                // Set a safety timeout for monitoring
                 setTimeout(() => {
                     if (getElement('scrapeButton').disabled) {
                         clearInterval(pollInterval);
                         addStatusUpdate('Polling stopped due to timeout. The scrape is still running in the background.');
-                        showAlert('Scrape monitoring timed out but may still be running.', 'warning');
+                        showAlert('Scrape monitoring timed out but may still be running. Come back later to see results.', 'warning');
                         getElement('loadingIndicator').style.display = 'none';
                         getElement('scrapeButton').disabled = false;
                     }
-                }, 5 * 60 * 1000);
+                }, dynamicTimeout);
             } else {
                 throw new Error(data.message || 'Unknown error starting scrape');
             }
@@ -1522,22 +1545,24 @@
         const row = document.createElement('div');
         row.className = 'row';
         
-        // Display up to 3 jobs
-        const maxJobs = Math.min(jobs.length, 3);
+        // Show latest jobs (up to 6 instead of 3 since we removed the "View All" button)
+        const maxJobs = Math.min(jobs.length, 6);
         for (let i = 0; i < maxJobs; i++) {
             row.appendChild(createJobCardElement(jobs[i]));
         }
         
-        // Add view all button if needed
-        if (jobs.length > 3) {
-            const viewAllDiv = document.createElement('div');
-            viewAllDiv.className = 'col-12 text-center mt-3';
-            viewAllDiv.innerHTML = `
-                <button class="btn btn-outline-primary" id="viewAllJobsBtn">
-                    <i class="bi bi-list me-2"></i>View All ${jobs.length} Jobs
-                </button>
+        // Add job count message if there are additional jobs not shown
+        if (jobs.length > maxJobs) {
+            const countInfoDiv = document.createElement('div');
+            countInfoDiv.className = 'col-12 text-center mt-3';
+            countInfoDiv.innerHTML = `
+                <div class="alert alert-info">
+                    <i class="bi bi-info-circle me-2"></i>
+                    Showing ${maxJobs} of ${jobs.length} recently scraped jobs. 
+                    Switch to the Search tab to see all jobs.
+                </div>
             `;
-            row.appendChild(viewAllDiv);
+            row.appendChild(countInfoDiv);
         }
         
         fragment.appendChild(row);
