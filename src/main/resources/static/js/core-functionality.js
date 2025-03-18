@@ -1009,7 +1009,7 @@
     }
     
     /**
-     * Display job details in modal
+     * Display job details in modal with improved description handling
      * @param {Object} job - Job data
      */
     function displayJobDetails(job) {
@@ -1045,12 +1045,21 @@
             radio.parentNode.replaceChild(newRadio, radio);
         });
         
-        // Format description
+        // Format description with improved error handling
         const descElement = getElement('jobDetailDescription');
         if (descElement) {
-            descElement.innerHTML = job.description && job.description.trim() 
-                ? formatJobDescription(job.description)
-                : '<p class="text-muted">No detailed description available for this job.</p>';
+            if (job.description) {
+                try {
+                    descElement.innerHTML = formatJobDescription(job.description);
+                    console.log(`Displayed job description (${job.description.length} chars)`);
+                } catch (e) {
+                    console.error('Error displaying job description:', e);
+                    descElement.innerHTML = `<p class="text-danger">Error displaying description. Length: ${job.description.length} chars</p>`;
+                    descElement.innerHTML += `<pre class="small bg-light p-2">${job.description.slice(0, 100)}...</pre>`;
+                }
+            } else {
+                descElement.innerHTML = '<p class="text-muted">No detailed description available for this job.</p>';
+            }
         }
         
         // Set LinkedIn link
@@ -1064,11 +1073,23 @@
             }
         }
         
+        // Set Claude AI document generation buttons job ID
+        const generateTailoredResumeBtn = getElement('generateTailoredResumeBtn');
+        const generateCoverLetterBtn = getElement('generateCoverLetterBtn');
+        
+        if (generateTailoredResumeBtn) {
+            generateTailoredResumeBtn.dataset.jobId = job.id;
+        }
+        
+        if (generateCoverLetterBtn) {
+            generateCoverLetterBtn.dataset.jobId = job.id;
+        }
+        
         // Show content, hide spinner
         getElement('jobDetailsSpinner').style.display = 'none';
         getElement('jobDetailsContent').style.display = 'block';
     }
-    
+        
     /**
      * Batch multiple DOM updates for better performance
      * @param {Array} updates - Array of {id, prop, value} objects
@@ -1782,17 +1803,62 @@
      * @return {String} Formatted HTML
      */
     function formatJobDescription(description) {
-        if (!description) return '';
+        if (!description || description.trim() === '') {
+            return '<p class="text-muted">No detailed description available for this job.</p>';
+        }
         
-        // Normalize line breaks once
-        const normalizedDesc = description.replace(/\r\n/g, '\n');
+        // Process description whitespace
+        const normalizedDesc = description
+            .replace(/\r\n/g, '\n')  // Normalize line breaks
+            .replace(/\n{3,}/g, '\n\n');  // Replace excessive line breaks
         
-        // Split and filter paragraphs in one operation
-        return normalizedDesc
-            .split(/\n\s*\n/)
-            .filter(p => p.trim().length > 0)
-            .map(p => `<p>${p.trim().replace(/\n/g, '<br>')}</p>`)
-            .join('');
+        // Detect if the description is already HTML
+        const containsHtml = /<(?=.*? .*?\/ ?>|br|hr|input|link|img|meta|param|area|base|col|!--|!DOCTYPE).*?>/i.test(normalizedDesc);
+        
+        if (containsHtml) {
+            // If it's HTML, return as is but wrapped in a container
+            return `<div class="job-description-html">${normalizedDesc}</div>`;
+        }
+        
+        // Otherwise, process as plain text
+        try {
+            // Split and filter paragraphs
+            const paragraphs = normalizedDesc
+                .split(/\n\s*\n/)
+                .filter(p => p.trim().length > 0);
+            
+            // Process each paragraph
+            return paragraphs
+                .map(p => {
+                    const trimmedP = p.trim();
+                    
+                    // Check if paragraph is a bullet list
+                    if (/^[•\-\*\⁃\◦\‣\⦿\⁌\⁍]\s/.test(trimmedP)) {
+                        // Convert to proper bullet list
+                        const listItems = trimmedP
+                            .split(/\n/)
+                            .filter(line => line.trim())
+                            .map(line => line.replace(/^[•\-\*\⁃\◦\‣\⦿\⁌\⁍]\s/, '').trim())
+                            .map(item => `<li>${item}</li>`)
+                            .join('');
+                        
+                        return `<ul>${listItems}</ul>`;
+                    }
+                    
+                    // Check if it might be a heading (short and ends with :)
+                    if (trimmedP.length < 50 && trimmedP.endsWith(':')) {
+                        return `<h4>${trimmedP}</h4>`;
+                    }
+                    
+                    // Regular paragraph with line break preservation
+                    return `<p>${trimmedP.replace(/\n/g, '<br>')}</p>`;
+                })
+                .join('');
+        } catch (e) {
+            console.error('Error formatting job description:', e);
+            // Fallback to basic formatting
+            return `<p>${description.replace(/\n/g, '<br>')}</p>`;
+        }
     }
     
     /**

@@ -276,10 +276,10 @@ public class LinkedInScraperService {
      * Scrape jobs for a specific experience level with progress tracking
      */
     private List<Job> scrapeJobsForExperienceLevel(ScrapingConfig config, LocalDate scrapeDate, 
-                                                Map<String, String> cookies, Set<String> processedJobUrls,
-                                                String scrapeId, int baseProgress, int progressForThisLevel) 
-                                                throws InterruptedException {
-        
+                                           Map<String, String> cookies, Set<String> processedJobUrls,
+                                           String scrapeId, int baseProgress, int progressForThisLevel) 
+                                           throws InterruptedException {
+    
         String experienceLevelName = config.getExperienceLevel() != null ? 
                 config.getExperienceLevel() : "Not specified";
         
@@ -352,18 +352,33 @@ public class LinkedInScraperService {
             log.info("Found {} unique jobs on page {} for experience level '{}'", 
                     uniqueJobs.size(), page + 1, experienceLevelName);
             
-            // Get job details (as in the original code)
-            if (uniqueJobs.size() <= 50) {
-                int jobCount = 0;
-                int totalJobs = uniqueJobs.size();
+            // Get job details - Process in smaller batches to ensure we can get descriptions
+            int jobCount = 0;
+            int totalJobs = uniqueJobs.size();
+            int batchSize = 20; // Reduced from 50 to a smaller batch size
+            
+            log.info("====== PROGRESS: Starting job details scraping for {} jobs ======", totalJobs);
+            
+            // Update progress for job details phase
+            updateProgress(scrapeId, currentProgress + (progressPerPage / 2), 
+                    "Getting detailed job information for " + totalJobs + " jobs");
+            
+            // Process jobs in batches
+            List<List<Job>> jobBatches = new ArrayList<>();
+            for (int i = 0; i < uniqueJobs.size(); i += batchSize) {
+                int end = Math.min(i + batchSize, uniqueJobs.size());
+                jobBatches.add(uniqueJobs.subList(i, end));
+            }
+            
+            // Process each batch
+            int batchIndex = 0;
+            for (List<Job> jobBatch : jobBatches) {
+                batchIndex++;
                 
-                log.info("====== PROGRESS: Starting job details scraping for {} jobs ======", totalJobs);
+                log.info("Processing job details batch {}/{}, size: {}", 
+                        batchIndex, jobBatches.size(), jobBatch.size());
                 
-                // Update progress for job details phase
-                updateProgress(scrapeId, currentProgress + (progressPerPage / 2), 
-                        "Getting detailed job information for " + totalJobs + " jobs");
-                
-                for (Job job : uniqueJobs) {
+                for (Job job : jobBatch) {
                     try {
                         jobCount++;
                         
@@ -403,12 +418,16 @@ public class LinkedInScraperService {
                     }
                 }
                 
-                log.info("====== PROGRESS: Completed job details scraping for {} jobs ======", totalJobs);
-            } else {
-                log.info("Skipping detailed job scraping for page {} as there are too many jobs ({})", 
-                        page + 1, uniqueJobs.size());
+                // Add a longer delay between batches to avoid rate limiting
+                if (batchIndex < jobBatches.size()) {
+                    log.info("Waiting between job detail batches to avoid rate limiting...");
+                    Thread.sleep(requestDelay * 2);
+                }
             }
             
+            log.info("====== PROGRESS: Completed job details scraping for {} jobs ======", totalJobs);
+            
+            // Add to final list
             jobsForLevel.addAll(uniqueJobs);
             
             // Add a delay before next page to avoid rate limiting

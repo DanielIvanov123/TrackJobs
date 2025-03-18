@@ -35,7 +35,7 @@ public class Job {
     @Column(nullable = false)
     private String location;
     
-    @Column(length = 5000)
+    @Column(columnDefinition = "TEXT")
     @Lob
     private String description;
     
